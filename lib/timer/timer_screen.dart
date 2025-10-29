@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:kvart/notification/notification_service.dart';
 import 'package:kvart/themes/default.dart';
 import 'package:kvart/timer/timer_controller.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class TimerScreen extends StatefulWidget {
   const TimerScreen({super.key});
@@ -12,7 +13,7 @@ class TimerScreen extends StatefulWidget {
 }
 
 class _TimerScreenState extends State<TimerScreen> {
-  final int _secondsTotal = 1 * 15;
+  int _secondsTotal = 15 * 60; // Default to 15 minutes
   late final TimerController _timerController;
   final NotificationService _notificationService = NotificationService();
 
@@ -21,6 +22,7 @@ class _TimerScreenState extends State<TimerScreen> {
   @override
   void initState() {
     super.initState();
+    _loadSavedTimer();
     _notificationService.initialize();
     _timerController = TimerController(
       secondsTotal: _secondsTotal,
@@ -28,13 +30,42 @@ class _TimerScreenState extends State<TimerScreen> {
         _notificationService.timeIsUp();
       },
     );
+    // Set status bar color to white
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
+  }
+
+  Future<void> _loadSavedTimer() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedSeconds = prefs.getInt('timer_seconds');
+
+    if (savedSeconds != null && savedSeconds > 0) {
+      setState(() {
+        _secondsTotal = savedSeconds;
+        _timerController.resetTimer(_secondsTotal);
+      });
+    }
+
     _timerController.elapsedSeconds.listen((seconds) {
       setState(() {
         _secondsElapsed = seconds;
       });
     });
-    // Set status bar color to white
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
+  }
+
+  Future<void> _saveTimer(int seconds) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('timer_seconds', seconds);
+  }
+
+  void _updateTotalSeconds(int newSeconds) {
+    if (_timerController.state == TimerState.running) return;
+
+    setState(() {
+      _secondsTotal = newSeconds;
+      _secondsElapsed = 0;
+    });
+    _timerController.resetTimer(_secondsTotal);
+    _saveTimer(newSeconds);
   }
 
   @override
@@ -47,6 +78,7 @@ class _TimerScreenState extends State<TimerScreen> {
           secondsTotal: _secondsTotal,
           secondsElapsed: _secondsElapsed,
           controller: _timerController,
+          onSecondsChanged: _updateTotalSeconds,
         ),
       ),
     );

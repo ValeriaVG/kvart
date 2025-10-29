@@ -6,14 +6,15 @@ enum TimerState { idle, running, paused, completed }
 class TimerController {
   TimerState _state = TimerState.idle;
   List<TimeInterval> _intervals = [];
-  final int secondsTotal;
+  int _secondsTotal;
   final void Function()? onComplete;
 
   final _elapsedController = StreamController<int>.broadcast();
   final _stateController = StreamController<TimerState>.broadcast();
   Timer? _ticker;
 
-  TimerController({this.secondsTotal = 60 * 15, this.onComplete});
+  TimerController({required int secondsTotal, this.onComplete})
+    : _secondsTotal = secondsTotal;
 
   void startTimer() {
     if (_state == TimerState.running) return;
@@ -48,11 +49,14 @@ class TimerController {
     WakelockPlus.disable();
   }
 
-  void resetTimer() {
+  void resetTimer([int? newSecondsTotal]) {
     _state = TimerState.idle;
     _stateController.add(_state);
     _intervals.clear();
     _stopTicking();
+    if (newSecondsTotal != null) {
+      _secondsTotal = newSecondsTotal;
+    }
     _notifyListeners();
     WakelockPlus.disable();
   }
@@ -62,7 +66,7 @@ class TimerController {
     _ticker = Timer.periodic(const Duration(milliseconds: 500), (_) {
       final totalDuration = _getTotalDuration();
 
-      if (totalDuration.inSeconds >= secondsTotal) {
+      if (totalDuration.inSeconds >= _secondsTotal) {
         stopTimer();
         onComplete?.call();
         return;
@@ -100,7 +104,6 @@ class TimerController {
     _stopTicking();
     _elapsedController.close();
     _stateController.close();
-    WakelockPlus.disable();
   }
 }
 

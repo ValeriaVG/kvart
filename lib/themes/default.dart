@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:flutter/cupertino.dart'
+    show CupertinoTimerPicker, CupertinoTimerPickerMode;
 import 'package:flutter/material.dart';
 import 'package:kvart/timer/timer_controller.dart';
 import 'package:kvart/timer/timer_view.dart';
@@ -14,12 +16,14 @@ class DefaultTimerView extends StatefulWidget implements TimerView {
   final int secondsElapsed;
   @override
   final TimerController controller;
+  final void Function(int)? onSecondsChanged;
 
   const DefaultTimerView({
     super.key,
     required this.secondsTotal,
     required this.secondsElapsed,
     required this.controller,
+    this.onSecondsChanged,
   });
 
   @override
@@ -65,6 +69,94 @@ class _DefaultTimerViewState extends State<DefaultTimerView> {
     }
   }
 
+  void _showTimePicker() {
+    if (widget.controller.state == TimerState.running) return;
+
+    final remainingSeconds = widget.secondsTotal - widget.secondsElapsed;
+    final initialMinutes = remainingSeconds ~/ 60;
+    final initialSeconds = remainingSeconds % 60;
+
+    int selectedSeconds = remainingSeconds;
+
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.8),
+      builder: (BuildContext context) {
+        return Dialog.fullscreen(
+          backgroundColor: const Color(0xFF020C1D),
+          child: SafeArea(
+            child: Column(
+              children: [
+                // Header
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(
+                            color: Color(0xFF7A90B0),
+                            fontSize: 18,
+                          ),
+                        ),
+                      ),
+                      const Text(
+                        'Set Timer',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          widget.onSecondsChanged?.call(selectedSeconds);
+                          Navigator.pop(context);
+                        },
+                        child: const Text(
+                          'Done',
+                          style: TextStyle(
+                            color: Color(0xFFC5F974),
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(color: Color(0xFF1A2A40), height: 1),
+                // Time Picker - centered and larger
+                Expanded(
+                  child: Center(
+                    child: SizedBox(
+                      height: 400,
+                      child: CupertinoTimerPicker(
+                        mode: CupertinoTimerPickerMode.ms,
+                        initialTimerDuration: Duration(
+                          minutes: initialMinutes,
+                          seconds: initialSeconds,
+                        ),
+                        onTimerDurationChanged: (Duration duration) {
+                          selectedSeconds = duration.inSeconds;
+                        },
+                        backgroundColor: const Color(0xFF020C1D),
+                        itemExtent: 64,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final progress =
@@ -80,11 +172,14 @@ class _DefaultTimerViewState extends State<DefaultTimerView> {
         CustomPaint(
           painter: TimerArcPainter(progress),
           child: Center(
-            child: SevenSegmentDisplay(
-              minutes: (widget.secondsTotal - widget.secondsElapsed) ~/ 60,
-              seconds: (widget.secondsTotal - widget.secondsElapsed) % 60,
-              digitWidth: digitWidth,
-              digitHeight: digitHeight,
+            child: GestureDetector(
+              onTap: _showTimePicker,
+              child: SevenSegmentDisplay(
+                minutes: (widget.secondsTotal - widget.secondsElapsed) ~/ 60,
+                seconds: (widget.secondsTotal - widget.secondsElapsed) % 60,
+                digitWidth: digitWidth,
+                digitHeight: digitHeight,
+              ),
             ),
           ),
         ),
@@ -119,7 +214,7 @@ class _DefaultTimerViewState extends State<DefaultTimerView> {
                 child: Center(
                   child: Icon(
                     _iconForState,
-                    color: Color(0xFF7A90B0),
+                    color: Color(0xC0C5F974),
                     size: minSide / 4,
                   ),
                 ),

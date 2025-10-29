@@ -14,6 +14,12 @@ class KvartApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(title: 'Kvart Timer', home: const TimerScreen());
+    return MaterialApp(
+      title: 'Kvart Timer',
+      home: const TimerScreen(),
+      themeMode: ThemeMode.dark, // or ThemeMode.dark, ThemeMode.system
+      theme: ThemeData.dark(),
+      darkTheme: ThemeData.dark(),
+    );
   }
 }
