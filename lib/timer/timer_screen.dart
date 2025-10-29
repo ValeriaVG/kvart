@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:kvart/notification/notification_service.dart';
+import 'package:kvart/settings/settings_screen.dart';
 import 'package:kvart/themes/default.dart';
 import 'package:kvart/timer/timer_controller.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TimerScreen extends StatefulWidget {
@@ -71,8 +73,22 @@ class _TimerScreenState extends State<TimerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF020C1D),
-
+      backgroundColor: const Color(0xFF020C1D),
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(LucideIcons.settings, color: Colors.white),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const SettingsScreen()),
+              );
+            },
+          ),
+        ],
+      ),
       body: Center(
         child: DefaultTimerView(
           secondsTotal: _secondsTotal,

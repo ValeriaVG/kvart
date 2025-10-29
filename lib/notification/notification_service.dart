@@ -1,5 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:kvart/settings/settings_service.dart';
 import 'package:vibration/vibration.dart';
 import 'package:vibration/vibration_presets.dart';
 
@@ -7,6 +8,7 @@ class NotificationService {
   final AudioPlayer _audioPlayer = AudioPlayer();
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
+  final SettingsService _settingsService = SettingsService();
 
   Future<void> initialize() async {
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -38,13 +40,17 @@ class NotificationService {
     // Show local notification
     await _showNotification();
 
-    // Play audio
-    loadAudio().then((_) {
-      _audioPlayer.play();
-    });
+    // Play audio if enabled
+    final soundEnabled = await _settingsService.isSoundEnabled();
+    if (soundEnabled) {
+      loadAudio().then((_) {
+        _audioPlayer.play();
+      });
+    }
 
-    // Vibrate
-    if (await Vibration.hasVibrator()) {
+    // Vibrate if enabled
+    final vibrationEnabled = await _settingsService.isVibrationEnabled();
+    if (vibrationEnabled && await Vibration.hasVibrator()) {
       Vibration.vibrate(
         duration: 5000,
         preset: VibrationPreset.countdownTimerAlert,
@@ -83,8 +89,21 @@ class NotificationService {
   }
 
   Future<void> loadAudio() async {
-    await _audioPlayer.setAsset(
-      'assets/audio/game-ui-level-unlock-om-fx-1-1-00-05.mp3',
-    );
+    final soundPath = await _settingsService.getSelectedSound();
+    await _audioPlayer.setAsset(soundPath);
+  }
+
+  /// Play a preview of the alarm sound (for settings screen)
+  Future<void> playPreview() async {
+    final soundEnabled = await _settingsService.isSoundEnabled();
+    if (soundEnabled) {
+      await loadAudio();
+      await _audioPlayer.play();
+    }
+  }
+
+  /// Stop playing audio
+  Future<void> stopAudio() async {
+    await _audioPlayer.stop();
   }
 }
