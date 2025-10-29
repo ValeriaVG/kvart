@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 enum TimerState { idle, running, paused, completed }
 
@@ -9,6 +10,7 @@ class TimerController {
   final void Function()? onComplete;
 
   final _elapsedController = StreamController<int>.broadcast();
+  final _stateController = StreamController<TimerState>.broadcast();
   Timer? _ticker;
 
   TimerController({this.secondsTotal = 60 * 15, this.onComplete});
@@ -19,32 +21,40 @@ class TimerController {
       resetTimer();
     }
     _state = TimerState.running;
+    _stateController.add(_state);
     _intervals.add(TimeInterval(DateTime.now()));
     _notifyListeners();
     _startTicking();
+    WakelockPlus.enable();
   }
 
   void pauseTimer() {
     if (_state != TimerState.running) return;
     _state = TimerState.paused;
+    _stateController.add(_state);
     _intervals.last.close(DateTime.now());
     _stopTicking();
     _notifyListeners();
+    WakelockPlus.disable();
   }
 
   void stopTimer() {
     if (_state != TimerState.running) return;
     _state = TimerState.completed;
+    _stateController.add(_state);
     _intervals.last.close(DateTime.now());
     _stopTicking();
     _notifyListeners();
+    WakelockPlus.disable();
   }
 
   void resetTimer() {
     _state = TimerState.idle;
+    _stateController.add(_state);
     _intervals.clear();
     _stopTicking();
     _notifyListeners();
+    WakelockPlus.disable();
   }
 
   void _startTicking() {
@@ -84,10 +94,13 @@ class TimerController {
   TimerState get state => _state;
 
   Stream<int> get elapsedSeconds => _elapsedController.stream;
+  Stream<TimerState> get stateStream => _stateController.stream;
 
   void dispose() {
     _stopTicking();
     _elapsedController.close();
+    _stateController.close();
+    WakelockPlus.disable();
   }
 }
 

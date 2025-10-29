@@ -21,6 +21,7 @@ class _TimerScreenState extends State<TimerScreen> {
   @override
   void initState() {
     super.initState();
+    _notificationService.initialize();
     _timerController = TimerController(
       secondsTotal: _secondsTotal,
       onComplete: () {

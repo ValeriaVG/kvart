@@ -3,10 +3,11 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:kvart/timer/timer_controller.dart';
 import 'package:kvart/timer/timer_view.dart';
+import 'package:kvart/widgets/bell_animation.dart';
 import 'package:kvart/widgets/seven_segment_display.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
-class DefaultTimerView extends StatelessWidget implements TimerView {
+class DefaultTimerView extends StatefulWidget implements TimerView {
   @override
   final int secondsTotal;
   @override
@@ -21,8 +22,39 @@ class DefaultTimerView extends StatelessWidget implements TimerView {
     required this.controller,
   });
 
+  @override
+  State<DefaultTimerView> createState() => _DefaultTimerViewState();
+}
+
+class _DefaultTimerViewState extends State<DefaultTimerView> {
+  bool _showBellAnimation = false;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.stateStream.listen((state) {
+      if (state == TimerState.completed) {
+        setState(() {
+          _showBellAnimation = true;
+        });
+        // Hide the bell animation after 5 seconds
+        Future.delayed(const Duration(seconds: 5), () {
+          if (mounted) {
+            setState(() {
+              _showBellAnimation = false;
+            });
+          }
+        });
+      } else if (state == TimerState.idle) {
+        setState(() {
+          _showBellAnimation = false;
+        });
+      }
+    });
+  }
+
   IconData get _iconForState {
-    switch (controller.state) {
+    switch (widget.controller.state) {
       case TimerState.running:
         return LucideIcons.pause;
       case TimerState.idle:
@@ -35,7 +67,8 @@ class DefaultTimerView extends StatelessWidget implements TimerView {
 
   @override
   Widget build(BuildContext context) {
-    final progress = (secondsTotal - secondsElapsed) / secondsTotal;
+    final progress =
+        (widget.secondsTotal - widget.secondsElapsed) / widget.secondsTotal;
     final minSide = min(
       MediaQuery.of(context).size.width,
       MediaQuery.of(context).size.height,
@@ -48,13 +81,20 @@ class DefaultTimerView extends StatelessWidget implements TimerView {
           painter: TimerArcPainter(progress),
           child: Center(
             child: SevenSegmentDisplay(
-              minutes: (secondsTotal - secondsElapsed) ~/ 60,
-              seconds: (secondsTotal - secondsElapsed) % 60,
+              minutes: (widget.secondsTotal - widget.secondsElapsed) ~/ 60,
+              seconds: (widget.secondsTotal - widget.secondsElapsed) % 60,
               digitWidth: digitWidth,
               digitHeight: digitHeight,
             ),
           ),
         ),
+        // Bell animation above the timer
+        if (_showBellAnimation)
+          Positioned(
+            top: MediaQuery.of(context).size.height / 2 - minSide / 3,
+            left: MediaQuery.of(context).size.width / 2 - 32,
+            child: const BellAnimation(size: 64),
+          ),
         Positioned(
           top: MediaQuery.of(context).size.height / 2 + minSide / 6 - 16,
           right: (MediaQuery.of(context).size.width - minSide) / 2 + 24,
@@ -69,10 +109,10 @@ class DefaultTimerView extends StatelessWidget implements TimerView {
               ),
               child: InkWell(
                 onTap: () {
-                  if (controller.state == TimerState.running) {
-                    controller.pauseTimer();
+                  if (widget.controller.state == TimerState.running) {
+                    widget.controller.pauseTimer();
                   } else {
-                    controller.startTimer();
+                    widget.controller.startTimer();
                   }
                 },
                 borderRadius: BorderRadius.circular(minSide / 6),
