@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:kvart/notification/notification_service.dart';
 import 'package:kvart/settings/settings_screen.dart';
 import 'package:kvart/themes/default.dart';
+import 'package:kvart/themes/vintage_amber.dart';
 import 'package:kvart/timer/timer_controller.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -101,7 +102,7 @@ class _TimerScreenState extends State<TimerScreen> {
         ],
       ),
       body: Center(
-        child: DefaultTimerView(
+        child: VintageAmberTimerView(
           secondsTotal: _secondsTotal,
           secondsElapsed: _secondsElapsed,
           controller: _timerController,
