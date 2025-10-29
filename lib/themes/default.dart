@@ -17,12 +17,15 @@ class DefaultTimerView extends StatefulWidget implements TimerView {
   @override
   final TimerController controller;
   final void Function(int)? onSecondsChanged;
+  @override
+  final bool ready;
 
   const DefaultTimerView({
     super.key,
     required this.secondsTotal,
     required this.secondsElapsed,
     required this.controller,
+    required this.ready,
     this.onSecondsChanged,
   });
 
@@ -80,7 +83,7 @@ class _DefaultTimerViewState extends State<DefaultTimerView> {
 
     showDialog(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.8),
+      barrierColor: Colors.black.withValues(alpha: 0.8),
       builder: (BuildContext context) {
         return Dialog.fullscreen(
           backgroundColor: const Color(0xFF020C1D),
@@ -175,6 +178,7 @@ class _DefaultTimerViewState extends State<DefaultTimerView> {
             child: GestureDetector(
               onTap: _showTimePicker,
               child: SevenSegmentDisplay(
+                disabled: widget.ready == false,
                 minutes: (widget.secondsTotal - widget.secondsElapsed) ~/ 60,
                 seconds: (widget.secondsTotal - widget.secondsElapsed) % 60,
                 digitWidth: digitWidth,

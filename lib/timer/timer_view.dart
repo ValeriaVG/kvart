@@ -4,10 +4,12 @@ abstract class TimerView {
   final int secondsTotal;
   final int secondsElapsed;
   final TimerController controller;
+  final bool ready;
 
   const TimerView({
     required this.secondsTotal,
     required this.secondsElapsed,
     required this.controller,
+    required this.ready,
   });
 }

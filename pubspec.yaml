@@ -31,9 +31,11 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_local_notifications: ^18.0.1
+  in_app_review: ^2.0.10
   just_audio: ^0.10.5
   lucide_icons_flutter: ^3.1.5
   shared_preferences: ^2.3.3
+  url_launcher: ^6.3.1
   vibration: ^3.1.4
   wakelock_plus: ^1.2.8
 

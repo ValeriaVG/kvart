@@ -269,6 +269,7 @@ class SevenSegmentDisplay extends StatelessWidget {
   final double digitWidth;
   final double digitHeight;
   final double segmentThickness;
+  final bool disabled;
 
   const SevenSegmentDisplay({
     super.key,
@@ -279,6 +280,7 @@ class SevenSegmentDisplay extends StatelessWidget {
     this.digitWidth = 48,
     this.digitHeight = 80,
     this.segmentThickness = 8,
+    this.disabled = false,
   });
 
   @override
@@ -292,7 +294,7 @@ class SevenSegmentDisplay extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         SevenSegmentDigit(
-          digit: minTens,
+          digit: disabled ? null : minTens,
           width: digitWidth,
           height: digitHeight,
           segmentThickness: segmentThickness,
@@ -301,7 +303,7 @@ class SevenSegmentDisplay extends StatelessWidget {
         ),
         SizedBox(width: segmentThickness / 2),
         SevenSegmentDigit(
-          digit: minUnits,
+          digit: disabled ? null : minUnits,
           width: digitWidth,
           height: digitHeight,
           segmentThickness: segmentThickness,
@@ -312,13 +314,13 @@ class SevenSegmentDisplay extends StatelessWidget {
         CustomPaint(
           size: Size(segmentThickness * 2, digitHeight),
           painter: DigitSeparatorPainter(
-            color: onColor,
+            color: disabled ? offColor : onColor,
             thickness: segmentThickness,
           ),
         ),
         SizedBox(width: segmentThickness / 2),
         SevenSegmentDigit(
-          digit: secTens,
+          digit: disabled ? null : secTens,
           width: digitWidth,
           height: digitHeight,
           segmentThickness: segmentThickness,
@@ -327,7 +329,7 @@ class SevenSegmentDisplay extends StatelessWidget {
         ),
         SizedBox(width: segmentThickness / 2),
         SevenSegmentDigit(
-          digit: secUnits,
+          digit: disabled ? null : secUnits,
           width: digitWidth,
           height: digitHeight,
           segmentThickness: segmentThickness,

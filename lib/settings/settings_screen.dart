@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:in_app_review/in_app_review.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:kvart/settings/settings_service.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -77,6 +79,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Future<void> _openBugReport() async {
+    final uri = Uri.parse('https://github.com/ValeriaVG/kvart/issues/new');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  Future<void> _rateApp() async {
+    final inAppReview = InAppReview.instance;
+
+    if (await inAppReview.isAvailable()) {
+      await inAppReview.requestReview();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -111,6 +128,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _buildSectionTitle('Vibration'),
                 const SizedBox(height: 12),
                 _buildVibrationTile(),
+                const SizedBox(height: 32),
+                _buildSectionTitle('Support'),
+                const SizedBox(height: 12),
+                _buildRateAppTile(),
+                const SizedBox(height: 8),
+                _buildBugReportTile(),
               ],
             ),
     );
@@ -281,6 +304,80 @@ class _SettingsScreenState extends State<SettingsScreen> {
         activeThumbColor: const Color(0xFF4CAF50),
         activeTrackColor: const Color(0xFF4CAF50).withValues(alpha: 0.5),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      ),
+    );
+  }
+
+  Widget _buildRateAppTile() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.1),
+          width: 1,
+        ),
+      ),
+      child: ListTile(
+        title: const Text(
+          'Rate the App',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        subtitle: Text(
+          'Enjoying Kvart? Leave a rating on the app store',
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.5),
+            fontSize: 13,
+          ),
+        ),
+        trailing: Icon(
+          LucideIcons.star,
+          color: Colors.white.withValues(alpha: 0.7),
+          size: 20,
+        ),
+        onTap: _rateApp,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      ),
+    );
+  }
+
+  Widget _buildBugReportTile() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.1),
+          width: 1,
+        ),
+      ),
+      child: ListTile(
+        title: const Text(
+          'Report a Bug',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        subtitle: Text(
+          'Help us improve by reporting issues on GitHub',
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.5),
+            fontSize: 13,
+          ),
+        ),
+        trailing: Icon(
+          LucideIcons.externalLink,
+          color: Colors.white.withValues(alpha: 0.7),
+          size: 20,
+        ),
+        onTap: _openBugReport,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
     );
   }

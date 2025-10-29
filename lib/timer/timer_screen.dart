@@ -15,6 +15,7 @@ class TimerScreen extends StatefulWidget {
 }
 
 class _TimerScreenState extends State<TimerScreen> {
+  bool _areSettingsLoaded = false;
   int _secondsTotal = 15 * 60; // Default to 15 minutes
   late final TimerController _timerController;
   final NotificationService _notificationService = NotificationService();
@@ -44,6 +45,12 @@ class _TimerScreenState extends State<TimerScreen> {
       setState(() {
         _secondsTotal = savedSeconds;
         _timerController.resetTimer(_secondsTotal);
+
+        _areSettingsLoaded = true;
+      });
+    } else {
+      setState(() {
+        _areSettingsLoaded = true;
       });
     }
 
@@ -80,7 +87,11 @@ class _TimerScreenState extends State<TimerScreen> {
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(LucideIcons.settings, color: Colors.white),
+            icon: const Icon(
+              LucideIcons.settings,
+              color: Colors.white,
+              size: 32,
+            ),
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (context) => const SettingsScreen()),
@@ -95,6 +106,7 @@ class _TimerScreenState extends State<TimerScreen> {
           secondsElapsed: _secondsElapsed,
           controller: _timerController,
           onSecondsChanged: _updateTotalSeconds,
+          ready: _areSettingsLoaded,
         ),
       ),
     );
