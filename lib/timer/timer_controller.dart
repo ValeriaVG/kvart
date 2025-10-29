@@ -6,16 +6,17 @@ class TimerController {
   TimerState _state = TimerState.idle;
   List<TimeInterval> _intervals = [];
   final int secondsTotal;
+  final void Function()? onComplete;
 
   final _elapsedController = StreamController<int>.broadcast();
   Timer? _ticker;
 
-  TimerController({this.secondsTotal = 60 * 15});
+  TimerController({this.secondsTotal = 60 * 15, this.onComplete});
 
   void startTimer() {
     if (_state == TimerState.running) return;
     if (_state == TimerState.completed) {
-      return resetTimer();
+      resetTimer();
     }
     _state = TimerState.running;
     _intervals.add(TimeInterval(DateTime.now()));
@@ -53,6 +54,7 @@ class TimerController {
 
       if (totalDuration.inSeconds >= secondsTotal) {
         stopTimer();
+        onComplete?.call();
         return;
       }
 
