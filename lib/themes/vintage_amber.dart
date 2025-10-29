@@ -18,6 +18,7 @@ class VintageAmberTimerView extends StatefulWidget implements TimerView {
   final int secondsElapsed;
   @override
   final TimerController controller;
+  @override
   final void Function(int)? onSecondsChanged;
   @override
   final bool ready;
@@ -209,97 +210,95 @@ class _VintageAmberTimerViewState extends State<VintageAmberTimerView> {
           ),
         ),
         // Main content
-          // Main timer with progress arc
-          CustomPaint(
-            painter: VintageAmberArcPainter(progress),
-            child: Center(
-              child: GestureDetector(
-                onTap: _showTimePicker,
-                child: SevenSegmentDisplay(
-                  disabled: widget.ready == false,
-                  minutes: (widget.secondsTotal - widget.secondsElapsed) ~/ 60,
-                  seconds: (widget.secondsTotal - widget.secondsElapsed) % 60,
-                  digitWidth: digitWidth,
-                  digitHeight: digitHeight,
-                  // Classic vintage amber/orange terminal color
-                  onColor: const Color(0xFFFFB347), // Bright amber
-                  offColor: const Color(
-                    0x18FF8C00,
-                  ), // Very dim amber for off segments
-                  segmentThickness: 10, // Slightly thicker for retro feel
-                ),
+        // Main timer with progress arc
+        CustomPaint(
+          painter: VintageAmberArcPainter(progress),
+          child: Center(
+            child: GestureDetector(
+              onTap: _showTimePicker,
+              child: SevenSegmentDisplay(
+                disabled: widget.ready == false,
+                minutes: (widget.secondsTotal - widget.secondsElapsed) ~/ 60,
+                seconds: (widget.secondsTotal - widget.secondsElapsed) % 60,
+                digitWidth: digitWidth,
+                digitHeight: digitHeight,
+                // Classic vintage amber/orange terminal color
+                onColor: const Color(0xFFFFB347), // Bright amber
+                offColor: const Color(
+                  0x18FF8C00,
+                ), // Very dim amber for off segments
+                segmentThickness: 10, // Slightly thicker for retro feel
               ),
             ),
           ),
-          // Bell animation
-          if (_showBellAnimation)
-            Positioned(
-              top: MediaQuery.of(context).size.height / 2 - minSide / 3,
-              left: MediaQuery.of(context).size.width / 2 - 32,
-              child: const BellAnimation(
-                size: 64,
-                color: Color(0xFFFFB347), // Bright amber to match theme
-              ),
-            ),
-          // Control button with rustic metallic styling
+        ),
+        // Bell animation
+        if (_showBellAnimation)
           Positioned(
-            top: MediaQuery.of(context).size.height / 2 + minSide / 6 - 16,
-            right: (MediaQuery.of(context).size.width - minSide) / 2 + 24,
-            child: Material(
-              color: Colors.transparent,
-              child: Container(
-                width: minSide / 3,
-                height: minSide / 3,
-                decoration: BoxDecoration(
-                  // Rusty metal background with border
-                  gradient: RadialGradient(
-                    colors: [
-                      Color(0xFF2D1F0F), // Dark rusty center
-                      Color(0xFF1A1108), // Darker edges
-                    ],
-                  ),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Color(0xFF6B5335), // Rusty brown border
-                    width: 3,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color(0x60FF8C00),
-                      blurRadius: 16,
-                      spreadRadius: 2,
-                    ),
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.5),
-                      blurRadius: 8,
-                      offset: Offset(0, 4),
-                    ),
+            top: MediaQuery.of(context).size.height / 2 - minSide / 3,
+            left: MediaQuery.of(context).size.width / 2 - 32,
+            child: const BellAnimation(
+              size: 64,
+              color: Color(0xFFFFB347), // Bright amber to match theme
+            ),
+          ),
+        // Control button with rustic metallic styling
+        Positioned(
+          top: MediaQuery.of(context).size.height / 2 + minSide / 6 - 16,
+          right: (MediaQuery.of(context).size.width - minSide) / 2 + 24,
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              width: minSide / 3,
+              height: minSide / 3,
+              decoration: BoxDecoration(
+                // Rusty metal background with border
+                gradient: RadialGradient(
+                  colors: [
+                    Color(0xFF2D1F0F), // Dark rusty center
+                    Color(0xFF1A1108), // Darker edges
                   ],
                 ),
-                child: InkWell(
-                  onTap: () {
-                    if (widget.controller.state == TimerState.running) {
-                      widget.controller.pauseTimer();
-                    } else {
-                      widget.controller.startTimer();
-                    }
-                  },
-                  borderRadius: BorderRadius.circular(minSide / 6),
-                  child: Center(
-                    child: Icon(
-                      _iconForState,
-                      color: Color(0xFFFF9933), // Warning amber
-                      size: minSide / 4,
-                      shadows: [
-                        Shadow(color: Color(0xFFFF8C00), blurRadius: 12),
-                      ],
-                    ),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Color(0xFF6B5335), // Rusty brown border
+                  width: 3,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0x60FF8C00),
+                    blurRadius: 16,
+                    spreadRadius: 2,
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    blurRadius: 8,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: InkWell(
+                onTap: () {
+                  if (widget.controller.state == TimerState.running) {
+                    widget.controller.pauseTimer();
+                  } else {
+                    widget.controller.startTimer();
+                  }
+                },
+                borderRadius: BorderRadius.circular(minSide / 6),
+                child: Center(
+                  child: Icon(
+                    _iconForState,
+                    color: Color(0xFFFF9933), // Warning amber
+                    size: minSide / 4,
+                    shadows: [Shadow(color: Color(0xFFFF8C00), blurRadius: 12)],
                   ),
                 ),
               ),
             ),
           ),
-        ],
+        ),
+      ],
     );
   }
 }
@@ -311,8 +310,7 @@ class RusticNoisePainter extends CustomPainter {
     final random = Random(12345); // Fixed seed for consistent pattern
 
     // Draw noise/grain texture with amber tones
-    final noisePaint = Paint()
-      ..style = PaintingStyle.fill;
+    final noisePaint = Paint()..style = PaintingStyle.fill;
 
     // Create noise by drawing many small dots with amber color
     for (var i = 0; i < 3000; i++) {
@@ -330,7 +328,6 @@ class RusticNoisePainter extends CustomPainter {
               : Color.fromRGBO(107, 83, 53, opacity * 0.2), // Rusty brown
       );
     }
-
   }
 
   @override

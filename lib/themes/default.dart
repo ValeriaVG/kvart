@@ -16,6 +16,7 @@ class DefaultTimerView extends StatefulWidget implements TimerView {
   final int secondsElapsed;
   @override
   final TimerController controller;
+  @override
   final void Function(int)? onSecondsChanged;
   @override
   final bool ready;

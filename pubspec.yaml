@@ -31,6 +31,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_local_notifications: ^18.0.1
+  in_app_purchase: ^3.2.0
   in_app_review: ^2.0.10
   just_audio: ^0.10.5
   lucide_icons_flutter: ^3.1.5
