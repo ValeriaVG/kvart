@@ -9,5 +9,6 @@ Kvart is built with Flutter, follow the instructions on [flutter.dev](https://fl
 
 ## Support
 
-Kvart is free and open source software, if you find it useful you could always 
+Kvart is free and open source software, if you find it useful you could consider supporting its development: 
+
 [![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/valeriavg).
