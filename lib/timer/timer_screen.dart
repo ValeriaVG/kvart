@@ -10,20 +10,19 @@ class TimerScreen extends StatefulWidget {
 }
 
 class _TimerScreenState extends State<TimerScreen> {
-  final TimerController _timerController = TimerController();
-  final int _secondsTotal = 900; // 15 minutes
+  final int _secondsTotal = 1 * 60;
+  late final TimerController _timerController;
+
   int _secondsElapsed = 0;
 
   @override
   void initState() {
     super.initState();
+    _timerController = TimerController(secondsTotal: _secondsTotal);
     _timerController.elapsedSeconds.listen((seconds) {
       setState(() {
         _secondsElapsed = seconds;
       });
-      if (_secondsElapsed >= _secondsTotal) {
-        _timerController.resetTimer();
-      }
     });
   }
 
