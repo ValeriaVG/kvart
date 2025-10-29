@@ -1,33 +1,51 @@
 import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:kvart/timer/timer_controller.dart';
+import 'package:kvart/timer/timer_view.dart';
 
-class Timer extends StatelessWidget {
-  const Timer({super.key});
+class DefaultTimerView extends StatelessWidget implements TimerView {
+  final int secondsTotal;
+  final int secondsElapsed;
+  final TimerController controller;
 
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Color(0xFF020C1D),
-      body: Center(child: TimerView()),
-    );
+  const DefaultTimerView({
+    super.key,
+    required this.secondsTotal,
+    required this.secondsElapsed,
+    required this.controller,
+  });
+
+  String get _timeString {
+    final remainingSeconds = secondsTotal - secondsElapsed;
+    final minutes = (remainingSeconds ~/ 60).toString().padLeft(2, '0');
+    final seconds = (remainingSeconds % 60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
   }
-}
-
-class TimerView extends StatelessWidget {
-  const TimerView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final progress = (secondsTotal - secondsElapsed) / secondsTotal;
     return CustomPaint(
-      painter: TimerArcPainter(0.75),
-      child: const Center(
-        child: Text(
-          '15:00',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 80,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 2,
+      painter: TimerArcPainter(progress),
+      child: Center(
+        child: InkWell(
+          onTap: () {
+            if (controller.state == TimerState.running) {
+              controller.pauseTimer();
+            } else {
+              controller.startTimer();
+            }
+          },
+          child: Text(
+            _timeString,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 80,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 2,
+              fontFamily: 'monospace',
+            ),
           ),
         ),
       ),
