@@ -1,17 +1,24 @@
+import 'dart:developer';
+
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:kvart/background/background_service.dart';
 import 'package:kvart/settings/settings_service.dart';
 import 'package:vibration/vibration.dart';
 import 'package:vibration/vibration_presets.dart';
 
 class NotificationService {
-  final AudioPlayer _audioPlayer = AudioPlayer();
+  final AudioPlayer _audioPlayer = AudioPlayer(
+    handleAudioSessionActivation: false,
+  );
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
   final SettingsService _settingsService = SettingsService();
 
   Future<void> initialize() async {
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidSettings = AndroidInitializationSettings(
+      '@mipmap/ic_launcher',
+    );
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
@@ -28,24 +35,30 @@ class NotificationService {
     // Request iOS permissions
     await _notificationsPlugin
         .resolvePlatformSpecificImplementation<
-            IOSFlutterLocalNotificationsPlugin>()
-        ?.requestPermissions(
-          alert: true,
-          badge: true,
-          sound: true,
-        );
+          IOSFlutterLocalNotificationsPlugin
+        >()
+        ?.requestPermissions(alert: true, badge: true, sound: true);
   }
 
   Future<void> timeIsUp() async {
-    // Show local notification
-    await _showNotification();
+    // Don't show a separate foreground notification - let the scheduled one fire
+    // This prevents duplicate notifications
+    // The scheduled notification will fire automatically at completion time
 
     // Play audio if enabled
     final soundEnabled = await _settingsService.isSoundEnabled();
     if (soundEnabled) {
-      loadAudio().then((_) {
-        _audioPlayer.play();
-      });
+      loadAudio()
+          .then((_) {
+            _audioPlayer.play().catchError((error) {
+              // Handle audio playback error
+              log('Error playing audio: $error');
+            });
+          })
+          .catchError((error) {
+            // Handle audio loading error
+            log('Error loading audio: $error');
+          });
     }
 
     // Vibrate if enabled
@@ -56,36 +69,6 @@ class NotificationService {
         preset: VibrationPreset.countdownTimerAlert,
       );
     }
-  }
-
-  Future<void> _showNotification() async {
-    const androidDetails = AndroidNotificationDetails(
-      'timer_channel',
-      'Timer Notifications',
-      channelDescription: 'Notifications for timer completion',
-      importance: Importance.max,
-      priority: Priority.high,
-      playSound: true,
-      enableVibration: true,
-    );
-
-    const iosDetails = DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-    );
-
-    const notificationDetails = NotificationDetails(
-      android: androidDetails,
-      iOS: iosDetails,
-    );
-
-    await _notificationsPlugin.show(
-      0,
-      'Timer Complete',
-      'Your timer has finished!',
-      notificationDetails,
-    );
   }
 
   Future<void> loadAudio() async {
@@ -105,5 +88,21 @@ class NotificationService {
   /// Stop playing audio
   Future<void> stopAudio() async {
     await _audioPlayer.stop();
+  }
+
+  /// Schedule a background notification for when timer completes
+  /// This ensures notification is sent even if app is backgrounded/killed
+  Future<void> scheduleTimerCompletion(int secondsUntilComplete) async {
+    await BackgroundService.scheduleTimerCompletion(secondsUntilComplete);
+  }
+
+  /// Cancel any scheduled background timer notifications
+  Future<void> cancelScheduledNotification() async {
+    // Use the shared notification plugin to ensure we cancel on the same instance
+    // that created the scheduled notification
+    await BackgroundService.notificationsPlugin.cancel(
+      999,
+    ); // ID from BackgroundService
+    await BackgroundService.cancelTimerCompletion();
   }
 }

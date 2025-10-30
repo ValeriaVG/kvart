@@ -35,6 +35,12 @@ class _TimerScreenState extends State<TimerScreen> {
       onComplete: () {
         _notificationService.timeIsUp();
       },
+      onScheduleBackgroundNotification: (seconds) {
+        _notificationService.scheduleTimerCompletion(seconds);
+      },
+      onCancelBackgroundNotification: () {
+        _notificationService.cancelScheduledNotification();
+      },
     );
     _themeService.getSelectedTimerTheme().then((theme) {
       setState(() {

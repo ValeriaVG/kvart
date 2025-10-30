@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:kvart/background/background_service.dart';
 import 'package:kvart/themes/theme_service.dart';
 import 'timer/timer_screen.dart';
 
-import 'package:flutter/services.dart';
-
-void main() {
+void main() async {
   // Set status bar color to white
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle.light);
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize background service for reliable notifications
+  await BackgroundService.initialize();
+
   ThemeService().getSelectedTimerTheme().then((theme) async {
     runApp(const KvartApp());
   });

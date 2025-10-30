@@ -76,7 +76,8 @@ class _DefaultTimerViewState extends State<DefaultTimerView> {
   void _showTimePicker() {
     if (widget.controller.state == TimerState.running) return;
 
-    final remainingSeconds = widget.secondsTotal - widget.secondsElapsed;
+    // Ensure remaining seconds is never negative
+    final remainingSeconds = max(0, widget.secondsTotal - widget.secondsElapsed);
     final initialMinutes = remainingSeconds ~/ 60;
     final initialSeconds = remainingSeconds % 60;
 
@@ -163,8 +164,9 @@ class _DefaultTimerViewState extends State<DefaultTimerView> {
 
   @override
   Widget build(BuildContext context) {
-    final progress =
-        (widget.secondsTotal - widget.secondsElapsed) / widget.secondsTotal;
+    // Ensure remaining seconds is never negative
+    final remainingSeconds = max(0, widget.secondsTotal - widget.secondsElapsed);
+    final progress = remainingSeconds / widget.secondsTotal;
     final minSide = min(
       MediaQuery.of(context).size.width,
       MediaQuery.of(context).size.height,
@@ -180,8 +182,8 @@ class _DefaultTimerViewState extends State<DefaultTimerView> {
               onTap: _showTimePicker,
               child: SevenSegmentDisplay(
                 disabled: widget.ready == false,
-                minutes: (widget.secondsTotal - widget.secondsElapsed) ~/ 60,
-                seconds: (widget.secondsTotal - widget.secondsElapsed) % 60,
+                minutes: remainingSeconds ~/ 60,
+                seconds: remainingSeconds % 60,
                 digitWidth: digitWidth,
                 digitHeight: digitHeight,
               ),

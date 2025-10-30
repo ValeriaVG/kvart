@@ -5,16 +5,22 @@ enum TimerState { idle, running, paused, completed }
 
 class TimerController {
   TimerState _state = TimerState.idle;
-  List<TimeInterval> _intervals = [];
+  final List<TimeInterval> _intervals = [];
   int _secondsTotal;
   final void Function()? onComplete;
+  final void Function(int)? onScheduleBackgroundNotification;
+  final void Function()? onCancelBackgroundNotification;
 
   final _elapsedController = StreamController<int>.broadcast();
   final _stateController = StreamController<TimerState>.broadcast();
   Timer? _ticker;
 
-  TimerController({required int secondsTotal, this.onComplete})
-    : _secondsTotal = secondsTotal;
+  TimerController({
+    required int secondsTotal,
+    this.onComplete,
+    this.onScheduleBackgroundNotification,
+    this.onCancelBackgroundNotification,
+  }) : _secondsTotal = secondsTotal;
 
   void startTimer() {
     if (_state == TimerState.running) return;
@@ -27,6 +33,13 @@ class TimerController {
     _notifyListeners();
     _startTicking();
     WakelockPlus.enable();
+
+    // Schedule background notification for timer completion
+    final elapsed = _getTotalDuration().inSeconds;
+    final remaining = _secondsTotal - elapsed;
+    if (remaining > 0) {
+      onScheduleBackgroundNotification?.call(remaining);
+    }
   }
 
   void pauseTimer() {
@@ -37,6 +50,9 @@ class TimerController {
     _stopTicking();
     _notifyListeners();
     WakelockPlus.disable();
+
+    // Cancel background notification when paused
+    onCancelBackgroundNotification?.call();
   }
 
   void stopTimer() {
@@ -47,6 +63,10 @@ class TimerController {
     _stopTicking();
     _notifyListeners();
     WakelockPlus.disable();
+
+    // Cancel background notification when timer completes normally
+    // (the foreground notification will be shown instead)
+    onCancelBackgroundNotification?.call();
   }
 
   void resetTimer([int? newSecondsTotal]) {
@@ -59,6 +79,9 @@ class TimerController {
     }
     _notifyListeners();
     WakelockPlus.disable();
+
+    // Cancel background notification when timer is reset
+    onCancelBackgroundNotification?.call();
   }
 
   void _startTicking() {
@@ -66,8 +89,10 @@ class TimerController {
     _ticker = Timer.periodic(const Duration(milliseconds: 500), (_) {
       final totalDuration = _getTotalDuration();
 
+      // Check if timer should complete
       if (totalDuration.inSeconds >= _secondsTotal) {
         stopTimer();
+        // Ensure onComplete is called even if we're past the time
         onComplete?.call();
         return;
       }
@@ -85,7 +110,9 @@ class TimerController {
 
   void _notifyListeners() {
     final totalDuration = _getTotalDuration();
-    _elapsedController.add(totalDuration.inSeconds);
+    // Clamp elapsed seconds to never exceed the total to prevent negative display
+    final clampedSeconds = totalDuration.inSeconds.clamp(0, _secondsTotal);
+    _elapsedController.add(clampedSeconds);
   }
 
   Duration _getTotalDuration() {
