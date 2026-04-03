@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart'
@@ -36,18 +37,34 @@ class VintageAmberTimerView extends StatefulWidget implements TimerView {
   State<VintageAmberTimerView> createState() => _VintageAmberTimerViewState();
 }
 
-class _VintageAmberTimerViewState extends State<VintageAmberTimerView> {
+class _VintageAmberTimerViewState extends State<VintageAmberTimerView>
+    with TickerProviderStateMixin {
   bool _showBellAnimation = false;
+  late final AnimationController _pulseController;
+  StreamSubscription<TimerState>? _stateSubscription;
 
   @override
   void initState() {
     super.initState();
-    widget.controller.stateStream.listen((state) {
+
+    // Pulsing glow when paused
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2500),
+    );
+
+    // Sync with current state (e.g. when switching themes mid-run)
+    if (widget.controller.state == TimerState.paused) {
+      _pulseController.repeat(reverse: true);
+    }
+
+    _stateSubscription = widget.controller.stateStream.listen((state) {
+      if (!mounted) return;
       if (state == TimerState.completed) {
+        _pulseController.stop();
         setState(() {
           _showBellAnimation = true;
         });
-        // Hide the bell animation after 5 seconds
         Future.delayed(const Duration(seconds: 5), () {
           if (mounted) {
             setState(() {
@@ -55,12 +72,24 @@ class _VintageAmberTimerViewState extends State<VintageAmberTimerView> {
             });
           }
         });
+      } else if (state == TimerState.running) {
+        _pulseController.stop();
+      } else if (state == TimerState.paused) {
+        _pulseController.repeat(reverse: true);
       } else if (state == TimerState.idle) {
+        _pulseController.stop();
         setState(() {
           _showBellAnimation = false;
         });
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _stateSubscription?.cancel();
+    _pulseController.dispose();
+    super.dispose();
   }
 
   IconData get _iconForState {
@@ -194,45 +223,52 @@ class _VintageAmberTimerViewState extends State<VintageAmberTimerView> {
       children: [
         // Noise and rustic lines background
         CustomPaint(
-          painter: RusticNoisePainter(),
+          painter: _RusticNoisePainter(),
           size: Size.infinite,
           child: Container(),
         ),
         // Radial gradient overlay
         Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: RadialGradient(
               center: Alignment.center,
               radius: 0.8,
               colors: [
-                Color(0x08FF8C00), // Subtle orange glow in center
+                Color(0x08FF8C00),
                 Colors.transparent,
               ],
             ),
           ),
         ),
-        // Main content
         // Main timer with progress arc
         CustomPaint(
-          painter: VintageAmberArcPainter(progress),
-          child: Center(
-            child: GestureDetector(
-              onTap: _showTimePicker,
-              child: SevenSegmentDisplay(
-                disabled: widget.ready == false,
-                minutes: remainingSeconds ~/ 60,
-                seconds: remainingSeconds % 60,
-                digitWidth: digitWidth,
-                digitHeight: digitHeight,
-                // Classic vintage amber/orange terminal color
-                onColor: const Color(0xFFFFB347), // Bright amber
-                offColor: const Color(
-                  0x18FF8C00,
-                ), // Very dim amber for off segments
-                segmentThickness: 10, // Slightly thicker for retro feel
+            painter: _VintageAmberArcPainter(
+              progress,
+              pulseValue: _pulseController.isAnimating
+                  ? _pulseController.value
+                  : null,
+            ),
+            child: Center(
+              child: GestureDetector(
+                onTap: _showTimePicker,
+                child: SevenSegmentDisplay(
+                  disabled: widget.ready == false,
+                  minutes: remainingSeconds ~/ 60,
+                  seconds: remainingSeconds % 60,
+                  digitWidth: digitWidth,
+                  digitHeight: digitHeight,
+                  onColor: const Color(0xFFFFB347),
+                  offColor: const Color(0x18FF8C00),
+                  segmentThickness: 10,
+                ),
               ),
             ),
           ),
+        // CRT scan lines overlay
+        CustomPaint(
+          painter: _CrtScanLinePainter(),
+          size: Size.infinite,
+          child: Container(),
         ),
         // Bell animation
         if (_showBellAnimation)
@@ -241,60 +277,32 @@ class _VintageAmberTimerViewState extends State<VintageAmberTimerView> {
             left: MediaQuery.of(context).size.width / 2 - 32,
             child: const BellAnimation(
               size: 64,
-              color: Color(0xFFFFB347), // Bright amber to match theme
+              color: Color(0xFFFFB347),
             ),
           ),
-        // Control button with rustic metallic styling
+        // Control button
         Positioned(
           top: MediaQuery.of(context).size.height / 2 + minSide / 6 - 16,
           right: (MediaQuery.of(context).size.width - minSide) / 2 + 24,
-          child: Material(
-            color: Colors.transparent,
-            child: Container(
+          child: GestureDetector(
+            onTap: () {
+              if (widget.controller.state == TimerState.running) {
+                widget.controller.pauseTimer();
+              } else {
+                widget.controller.startTimer();
+              }
+            },
+            child: SizedBox(
               width: minSide / 3,
               height: minSide / 3,
-              decoration: BoxDecoration(
-                // Rusty metal background with border
-                gradient: RadialGradient(
-                  colors: [
-                    Color(0xFF2D1F0F), // Dark rusty center
-                    Color(0xFF1A1108), // Darker edges
+              child: Center(
+                child: Icon(
+                  _iconForState,
+                  color: const Color(0xFFFF9933),
+                  size: minSide / 4,
+                  shadows: const [
+                    Shadow(color: Color(0xFFFF8C00), blurRadius: 12),
                   ],
-                ),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: Color(0xFF6B5335), // Rusty brown border
-                  width: 3,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0x60FF8C00),
-                    blurRadius: 16,
-                    spreadRadius: 2,
-                  ),
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.5),
-                    blurRadius: 8,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: InkWell(
-                onTap: () {
-                  if (widget.controller.state == TimerState.running) {
-                    widget.controller.pauseTimer();
-                  } else {
-                    widget.controller.startTimer();
-                  }
-                },
-                borderRadius: BorderRadius.circular(minSide / 6),
-                child: Center(
-                  child: Icon(
-                    _iconForState,
-                    color: Color(0xFFFF9933), // Warning amber
-                    size: minSide / 4,
-                    shadows: [Shadow(color: Color(0xFFFF8C00), blurRadius: 12)],
-                  ),
                 ),
               ),
             ),
@@ -305,29 +313,24 @@ class _VintageAmberTimerViewState extends State<VintageAmberTimerView> {
   }
 }
 
-/// Painter for rustic noise and scratches background
-class RusticNoisePainter extends CustomPainter {
+class _RusticNoisePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final random = Random(12345); // Fixed seed for consistent pattern
-
-    // Draw noise/grain texture with amber tones
+    final random = Random(12345);
     final noisePaint = Paint()..style = PaintingStyle.fill;
 
-    // Create noise by drawing many small dots with amber color
     for (var i = 0; i < 3000; i++) {
       final x = random.nextDouble() * size.width;
       final y = random.nextDouble() * size.height;
       final opacity = random.nextDouble() * 0.4 + 0.1;
-      // Mix of dark amber and rust colors
       final useAmber = random.nextBool();
       canvas.drawCircle(
         Offset(x, y),
         0.8,
         noisePaint
           ..color = useAmber
-              ? Color.fromRGBO(139, 111, 71, opacity * 0.3) // Dusty tan
-              : Color.fromRGBO(107, 83, 53, opacity * 0.2), // Rusty brown
+              ? Color.fromRGBO(139, 111, 71, opacity * 0.3)
+              : Color.fromRGBO(107, 83, 53, opacity * 0.2),
       );
     }
   }
@@ -336,10 +339,29 @@ class RusticNoisePainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-class VintageAmberArcPainter extends CustomPainter {
-  final double progress;
+class _CrtScanLinePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color(0x0A000000)
+      ..style = PaintingStyle.fill;
 
-  VintageAmberArcPainter(this.progress);
+    // Draw horizontal scan lines every 3 pixels
+    for (var y = 0.0; y < size.height; y += 3) {
+      canvas.drawRect(Rect.fromLTWH(0, y, size.width, 1), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _VintageAmberArcPainter extends CustomPainter {
+  final double progress;
+  final double? _pulseValue;
+
+  _VintageAmberArcPainter(this.progress, {double? pulseValue})
+      : _pulseValue = pulseValue;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -353,64 +375,75 @@ class VintageAmberArcPainter extends CustomPainter {
 
     final progressSweepAngle = sweepAngle * progress;
 
-    // Draw outer rusty border ring
+    // Outer rusty border ring
     final outerBorderPaint = Paint()
-      ..color =
-          const Color(0xFF6B5335) // Rusty brown
+      ..color = const Color(0xFF6B5335)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth + 12
       ..strokeCap = StrokeCap.round;
-
     canvas.drawArc(rect, startAngle, sweepAngle, false, outerBorderPaint);
 
-    // Draw the background track (dark rusty metal)
+    // Background track
     final backgroundPaint = Paint()
       ..color = const Color(0xFF2D1F0F)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth + 4
       ..strokeCap = StrokeCap.round;
-
     canvas.drawArc(rect, startAngle, sweepAngle, false, backgroundPaint);
 
-    // Draw the progress arc with gradient effect
-    // We'll approximate gradient by drawing multiple arcs with varying opacity
+    // Gauge tick marks around the arc
+    final tickPaint = Paint()
+      ..color = const Color(0xFF8B6F47)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5
+      ..strokeCap = StrokeCap.round;
+    final majorTickPaint = Paint()
+      ..color = const Color(0xFFAA8855)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round;
 
-    final innerRadius = radius - strokeWidth / 6 + (strokeWidth / 6);
-    final innerRect = Rect.fromCircle(center: center, radius: innerRadius);
+    const tickCount = 27; // One per 10° of 270°
+    for (var i = 0; i <= tickCount; i++) {
+      final angle = startAngle + sweepAngle * (i / tickCount);
+      final isMajor = i % 3 == 0;
+      final innerR = radius + strokeWidth / 2 + 8;
+      final outerR = innerR + (isMajor ? 10 : 5);
+      canvas.drawLine(
+        Offset(center.dx + innerR * cos(angle), center.dy + innerR * sin(angle)),
+        Offset(center.dx + outerR * cos(angle), center.dy + outerR * sin(angle)),
+        isMajor ? majorTickPaint : tickPaint,
+      );
+    }
 
+    // Progress arc
     final gradientPaint = Paint()
       ..color = const Color(0xFFFF9933)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth * 0.8
       ..strokeCap = StrokeCap.round;
+    canvas.drawArc(rect, startAngle, progressSweepAngle, false, gradientPaint);
 
-    canvas.drawArc(
-      innerRect,
-      startAngle,
-      progressSweepAngle,
-      false,
-      gradientPaint,
-    );
-
-    // Add glow effect to the progress arc
+    // Glow — pulses when paused
+    final glowOpacity = _pulseValue != null
+        ? 0.2 + 0.4 * _pulseValue
+        : 0.4;
     final glowPaint = Paint()
-      ..color = const Color(0x40FF8C00)
+      ..color = Color.fromRGBO(255, 140, 0, glowOpacity)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth + 8
       ..strokeCap = StrokeCap.round
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
-
     canvas.drawArc(rect, startAngle, progressSweepAngle, false, glowPaint);
 
-    // Draw scratches and wear marks on the arc for rustic feel
+    // Scratches for worn look
     final scratchPaint = Paint()
       ..color = const Color(0x20000000)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2
       ..strokeCap = StrokeCap.round;
 
-    // Add a few random-looking scratches
-    final random = Random(42); // Fixed seed for consistent scratches
+    final random = Random(42);
     for (var i = 0; i < 8; i++) {
       final scratchAngle = startAngle + (sweepAngle * random.nextDouble());
       final scratchLength = strokeWidth * (0.5 + random.nextDouble() * 0.5);
@@ -429,5 +462,5 @@ class VintageAmberArcPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant _VintageAmberArcPainter oldDelegate) => true;
 }

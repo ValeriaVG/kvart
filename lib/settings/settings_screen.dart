@@ -201,7 +201,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
           width: 1,
         ),
       ),
-      child: Column(
+      child: RadioGroup<AlarmSound>(
+        groupValue: _selectedSound,
+        onChanged: _soundEnabled
+            ? (AlarmSound? value) {
+                if (value != null) {
+                  _selectSound(value);
+                }
+              }
+            : (_) {},
+        child: Column(
         children: SettingsService.availableSounds.asMap().entries.map((entry) {
           final index = entry.key;
           final sound = entry.value;
@@ -236,14 +245,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 leading: Radio<AlarmSound>(
                   value: sound,
-                  groupValue: _selectedSound,
-                  onChanged: _soundEnabled
-                      ? (AlarmSound? value) {
-                          if (value != null) {
-                            _selectSound(value);
-                          }
-                        }
-                      : null,
                   fillColor: WidgetStateProperty.resolveWith<Color>((states) {
                     if (states.contains(WidgetState.selected)) {
                       return const Color(0xFF4CAF50);
@@ -267,6 +268,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ],
           );
         }).toList(),
+      ),
       ),
     );
   }

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:kvart/themes/blaze/blaze.dart';
+import 'package:kvart/themes/default/default.dart';
 import 'package:kvart/themes/theme_service.dart';
+import 'package:kvart/themes/vintage_amber/vintage_amber.dart';
+import 'package:kvart/timer/timer_controller.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class ThemesScreen extends StatefulWidget {
@@ -11,14 +15,21 @@ class ThemesScreen extends StatefulWidget {
 
 class _ThemesScreenState extends State<ThemesScreen> {
   final _themeService = ThemeService();
+  final _previewController = TimerController(secondsTotal: 900);
   String? _selectedThemeId;
+  String? _purchasingThemeId;
   bool _isLoading = true;
-  bool _isPurchasing = false;
 
   @override
   void initState() {
     super.initState();
     _loadSelectedTheme();
+  }
+
+  @override
+  void dispose() {
+    _previewController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadSelectedTheme() async {
@@ -31,9 +42,7 @@ class _ThemesScreenState extends State<ThemesScreen> {
   }
 
   Future<void> _selectTheme(String themeId) async {
-    // Check if theme is locked
     if (_themeService.isThemeLocked(themeId)) {
-      // Show purchase dialog
       _purchaseTheme(themeId);
       return;
     }
@@ -46,23 +55,21 @@ class _ThemesScreenState extends State<ThemesScreen> {
 
   Future<void> _purchaseTheme(String themeId) async {
     setState(() {
-      _isPurchasing = true;
+      _purchasingThemeId = themeId;
     });
 
-    final success = await _themeService.purchaseTheme(themeId);
+    final result = await _themeService.purchaseTheme(themeId);
 
     setState(() {
-      _isPurchasing = false;
+      _purchasingThemeId = null;
     });
 
-    if (success && mounted) {
-      // Purchase successful, select the theme
+    if (result == true && mounted) {
       setState(() {
         _selectedThemeId = themeId;
       });
       await _themeService.setSelectedTheme(themeId);
 
-      // Show success message
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -71,8 +78,7 @@ class _ThemesScreenState extends State<ThemesScreen> {
           ),
         );
       }
-    } else if (mounted) {
-      // Show error message
+    } else if (result == false && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Failed to purchase theme. Please try again.'),
@@ -106,23 +112,29 @@ class _ThemesScreenState extends State<ThemesScreen> {
           ? const Center(
               child: CircularProgressIndicator(color: Color(0xFFC5F974)),
             )
-          : ListView.builder(
+          : GridView.builder(
               padding: const EdgeInsets.all(16),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 0.75,
+              ),
               itemCount: ThemeService.availableThemes.length,
               itemBuilder: (context, index) {
                 final theme = ThemeService.availableThemes[index];
                 final isSelected = theme.id == _selectedThemeId;
                 final isLocked = _themeService.isThemeLocked(theme.id);
+                final price = _themeService.getThemePrice(theme.id);
 
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: _ThemeCard(
-                    theme: theme,
-                    isSelected: isSelected,
-                    isLocked: isLocked,
-                    isPurchasing: _isPurchasing && isLocked,
-                    onTap: () => _selectTheme(theme.id),
-                  ),
+                return _ThemeCard(
+                  theme: theme,
+                  isSelected: isSelected,
+                  isLocked: isLocked,
+                  isPurchasing: _purchasingThemeId == theme.id,
+                  price: price,
+                  previewController: _previewController,
+                  onTap: () => _selectTheme(theme.id),
                 );
               },
             ),
@@ -135,6 +147,8 @@ class _ThemeCard extends StatelessWidget {
   final bool isSelected;
   final bool isLocked;
   final bool isPurchasing;
+  final String? price;
+  final TimerController previewController;
   final VoidCallback onTap;
 
   const _ThemeCard({
@@ -142,6 +156,8 @@ class _ThemeCard extends StatelessWidget {
     required this.isSelected,
     required this.isLocked,
     required this.isPurchasing,
+    required this.price,
+    required this.previewController,
     required this.onTap,
   });
 
@@ -151,6 +167,8 @@ class _ThemeCard extends StatelessWidget {
         return const Color(0xFFC5F974);
       case 'vintage_amber':
         return const Color(0xFFFFB347);
+      case 'blaze':
+        return const Color(0xFFFF784C);
       default:
         return const Color(0xFFC5F974);
     }
@@ -162,6 +180,8 @@ class _ThemeCard extends StatelessWidget {
         return const Color(0xFF0A1A30);
       case 'vintage_amber':
         return const Color(0xFF2D1F0F);
+      case 'blaze':
+        return const Color(0xFF0C0B0B);
       default:
         return const Color(0xFF0A1A30);
     }
@@ -169,138 +189,180 @@ class _ThemeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Opacity(
-          opacity: isLocked ? 0.6 : 1.0,
-          child: Container(
-            decoration: BoxDecoration(
-              color: _backgroundColor,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isSelected && !isLocked
-                    ? _accentColor
-                    : Colors.transparent,
-                width: 3,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: _backgroundColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected && !isLocked ? _accentColor : Colors.white10,
+            width: isSelected && !isLocked ? 2 : 1,
+          ),
+          boxShadow: isSelected && !isLocked
+              ? [
+                  BoxShadow(
+                    color: _accentColor.withValues(alpha: 0.25),
+                    blurRadius: 16,
+                    spreadRadius: 1,
+                  ),
+                ]
+              : null,
+        ),
+        child: Stack(
+          children: [
+            // Main content
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  const SizedBox(height: 8),
+                  // Timer preview
+                  Expanded(
+                    child: Center(
+                      child: _buildTimerPreview(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Theme name
+                  Text(
+                    theme.name,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  // Status / price row
+                  _buildStatusRow(),
+                ],
               ),
-              boxShadow: isSelected && !isLocked
-                  ? [
-                      BoxShadow(
-                        color: _accentColor.withValues(alpha: 0.3),
-                        blurRadius: 16,
-                        spreadRadius: 2,
-                      ),
-                    ]
-                  : null,
             ),
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                // Theme preview circle
-                Container(
-                  width: 64,
-                  height: 64,
+            // Selected checkmark
+            if (isSelected && !isLocked)
+              Positioned(
+                top: 10,
+                right: 10,
+                child: Container(
+                  width: 24,
+                  height: 24,
                   decoration: BoxDecoration(
+                    color: _accentColor,
                     shape: BoxShape.circle,
-                    color: _backgroundColor,
-                    border: Border.all(color: _accentColor, width: 4),
-                    boxShadow: [
-                      BoxShadow(
-                        color: _accentColor.withValues(alpha: 0.4),
-                        blurRadius: 12,
-                        spreadRadius: 1,
-                      ),
-                    ],
                   ),
-                  child: Center(
-                    child: Text(
-                      '15',
-                      style: TextStyle(
-                        color: _accentColor,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        shadows: [
-                          Shadow(
-                            color: _accentColor.withValues(alpha: 0.5),
-                            blurRadius: 8,
-                          ),
-                        ],
-                      ),
-                    ),
+                  child: const Icon(
+                    LucideIcons.check,
+                    color: Color(0xFF020C1D),
+                    size: 14,
                   ),
                 ),
-                const SizedBox(width: 20),
-                // Theme info
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        theme.name,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        theme.description,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Color(0xFF7A90B0),
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Lock or selection indicator
-                if (isLocked)
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF7A90B0),
-                      shape: BoxShape.circle,
-                    ),
-                    child: isPurchasing
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              color: Color(0xFF020C1D),
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Icon(
-                            LucideIcons.lock,
-                            color: Color(0xFF020C1D),
-                            size: 16,
-                          ),
-                  )
-                else if (isSelected)
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: _accentColor,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      LucideIcons.check,
-                      color: Color(0xFF020C1D),
-                      size: 20,
-                    ),
-                  ),
-              ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTimerPreview() {
+    final Widget timerView;
+
+    switch (theme.id) {
+      case 'blaze':
+        timerView = BlazeTimerView(
+          secondsTotal: 900,
+          secondsElapsed: 0,
+          controller: previewController,
+          ready: true,
+        );
+      case 'vintage_amber':
+        timerView = VintageAmberTimerView(
+          secondsTotal: 900,
+          secondsElapsed: 0,
+          controller: previewController,
+          ready: true,
+        );
+      default:
+        timerView = DefaultTimerView(
+          secondsTotal: 900,
+          secondsElapsed: 0,
+          controller: previewController,
+          ready: true,
+        );
+    }
+
+    const previewSize = 120.0;
+    const fullSize = 390.0;
+    const scale = previewSize / fullSize;
+
+    return SizedBox(
+      width: previewSize,
+      height: previewSize,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: OverflowBox(
+          maxWidth: fullSize,
+          maxHeight: fullSize,
+          child: Transform.scale(
+            scale: scale,
+            child: MediaQuery(
+              data: const MediaQueryData(size: Size(fullSize, fullSize)),
+              child: SizedBox(
+                width: fullSize,
+                height: fullSize,
+                child: IgnorePointer(child: timerView),
+              ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildStatusRow() {
+    if (isLocked) {
+      return isPurchasing
+          ? SizedBox(
+              height: 20,
+              width: 20,
+              child: CircularProgressIndicator(
+                color: _accentColor,
+                strokeWidth: 2,
+              ),
+            )
+          : Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: _accentColor.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                price ?? theme.description,
+                style: TextStyle(
+                  color: _accentColor,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            );
+    }
+
+    if (isSelected) {
+      return Text(
+        'Active',
+        style: TextStyle(
+          color: _accentColor,
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+        ),
+      );
+    }
+
+    return const Text(
+      'Tap to apply',
+      style: TextStyle(
+        color: Color(0xFF7A90B0),
+        fontSize: 13,
       ),
     );
   }

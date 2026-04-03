@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart'
@@ -36,16 +37,17 @@ class DefaultTimerView extends StatefulWidget implements TimerView {
 
 class _DefaultTimerViewState extends State<DefaultTimerView> {
   bool _showBellAnimation = false;
+  StreamSubscription<TimerState>? _stateSubscription;
 
   @override
   void initState() {
     super.initState();
-    widget.controller.stateStream.listen((state) {
+    _stateSubscription = widget.controller.stateStream.listen((state) {
+      if (!mounted) return;
       if (state == TimerState.completed) {
         setState(() {
           _showBellAnimation = true;
         });
-        // Hide the bell animation after 5 seconds
         Future.delayed(const Duration(seconds: 5), () {
           if (mounted) {
             setState(() {
@@ -59,6 +61,12 @@ class _DefaultTimerViewState extends State<DefaultTimerView> {
         });
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _stateSubscription?.cancel();
+    super.dispose();
   }
 
   IconData get _iconForState {
@@ -272,5 +280,6 @@ class TimerArcPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant TimerArcPainter oldDelegate) =>
+      progress != oldDelegate.progress;
 }

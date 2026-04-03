@@ -2,8 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:kvart/purchase/purchase_service.dart';
-import 'package:kvart/themes/default.dart';
-import 'package:kvart/themes/vintage_amber.dart';
+import 'package:kvart/themes/default/default.dart';
+import 'package:kvart/themes/blaze/blaze.dart';
+import 'package:kvart/themes/vintage_amber/vintage_amber.dart';
 import 'package:kvart/timer/timer_controller.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -60,6 +61,26 @@ class ThemeService {
             onSecondsChanged: onSecondsChanged,
           ),
     ),
+    TimerTheme(
+      id: 'blaze',
+      name: 'Blaze',
+      description: 'Fiery gradient on dark background',
+      productId: 'theme_blaze',
+      view:
+          ({
+            required int secondsTotal,
+            required int secondsElapsed,
+            required TimerController controller,
+            required bool ready,
+            required void Function(int)? onSecondsChanged,
+          }) => BlazeTimerView(
+            secondsTotal: secondsTotal,
+            secondsElapsed: secondsElapsed,
+            controller: controller,
+            ready: ready,
+            onSecondsChanged: onSecondsChanged,
+          ),
+    ),
   ];
 
   /// Get selected theme ID
@@ -93,7 +114,11 @@ class ThemeService {
 
   /// Initialize purchase service
   Future<void> initializePurchases() async {
-    await _purchaseService.initialize();
+    final productIds = availableThemes
+        .where((t) => t.productId != null)
+        .map((t) => t.productId!)
+        .toSet();
+    await _purchaseService.initialize(productIds: productIds);
   }
 
   /// Check if a theme is locked (requires purchase)
@@ -110,8 +135,9 @@ class ThemeService {
     return !_purchaseService.isThemePurchased(theme.productId!);
   }
 
-  /// Purchase a theme
-  Future<bool> purchaseTheme(String themeId) async {
+  /// Purchase a theme.
+  /// Returns `true` on success, `false` on error, `null` if user cancelled.
+  Future<bool?> purchaseTheme(String themeId) async {
     final theme = availableThemes.firstWhere(
       (t) => t.id == themeId,
       orElse: () => availableThemes.first,
@@ -124,10 +150,16 @@ class ThemeService {
     return await _purchaseService.purchaseTheme(theme.productId!);
   }
 
-  /// Restore purchases
-  Future<void> restorePurchases() async {
-    await _purchaseService.restorePurchases();
+  /// Get the price string for a theme, or null if free/unavailable
+  String? getThemePrice(String themeId) {
+    final theme = availableThemes.firstWhere(
+      (t) => t.id == themeId,
+      orElse: () => availableThemes.first,
+    );
+    if (!theme.isPaid || theme.productId == null) return null;
+    return _purchaseService.getPrice(theme.productId!);
   }
+
 }
 
 /// Model class for timer themes

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -12,21 +13,21 @@ class PurchaseService {
   final InAppPurchase _iap = InAppPurchase.instance;
   StreamSubscription<List<PurchaseDetails>>? _subscription;
 
-  // Product IDs
-  static const String vintageAmberThemeId = 'theme_vintage_amber';
-
   // SharedPreferences keys
   static const String _purchasedThemesKey = 'purchased_themes';
 
   bool _isInitialized = false;
   final Set<String> _purchasedThemes = {};
+  final Map<String, String> _productPrices = {};
+  final Map<String, Completer<bool?>> _purchaseCompleters = {};
 
   /// Initialize the purchase service
-  Future<void> initialize() async {
+  Future<void> initialize({Set<String> productIds = const {}}) async {
     if (_isInitialized) return;
 
     // Check if in-app purchase is available
     final available = await _iap.isAvailable();
+    debugPrint('[PurchaseService] IAP available: $available');
     if (!available) {
       _isInitialized = true;
       return;
@@ -43,8 +44,8 @@ class PurchaseService {
       onError: _onPurchaseUpdateError,
     );
 
-    // Restore past purchases
-    await _iap.restorePurchases();
+    // Fetch product prices
+    await _loadProductPrices(productIds);
 
     _isInitialized = true;
   }
@@ -63,7 +64,9 @@ class PurchaseService {
   }
 
   /// Handle purchase updates
-  Future<void> _onPurchaseUpdate(List<PurchaseDetails> purchaseDetailsList) async {
+  Future<void> _onPurchaseUpdate(
+    List<PurchaseDetails> purchaseDetailsList,
+  ) async {
     for (final purchaseDetails in purchaseDetailsList) {
       await _handlePurchase(purchaseDetails);
     }
@@ -71,6 +74,8 @@ class PurchaseService {
 
   /// Handle individual purchase
   Future<void> _handlePurchase(PurchaseDetails purchaseDetails) async {
+    debugPrint('[PurchaseService] handlePurchase: ${purchaseDetails.productID} '
+        'status=${purchaseDetails.status}');
     if (purchaseDetails.status == PurchaseStatus.purchased ||
         purchaseDetails.status == PurchaseStatus.restored) {
       // Verify purchase locally (basic verification)
@@ -85,6 +90,19 @@ class PurchaseService {
     // Complete the purchase
     if (purchaseDetails.pendingCompletePurchase) {
       await _iap.completePurchase(purchaseDetails);
+    }
+
+    // Signal purchase completer
+    final completer = _purchaseCompleters.remove(purchaseDetails.productID);
+    if (completer != null && !completer.isCompleted) {
+      switch (purchaseDetails.status) {
+        case PurchaseStatus.purchased || PurchaseStatus.restored:
+          completer.complete(true);
+        case PurchaseStatus.canceled:
+          completer.complete(null);
+        default:
+          completer.complete(false);
+      }
     }
   }
 
@@ -108,17 +126,35 @@ class PurchaseService {
   }
 
   void _onPurchaseUpdateError(dynamic error) {
-    // Handle error
-    // In a production app, you would want to log this or show an error message
+    debugPrint('[PurchaseService] stream error: $error');
   }
+
+  /// Load product prices from the store
+  Future<void> _loadProductPrices(Set<String> productIds) async {
+    if (productIds.isEmpty) return;
+    final response = await _iap.queryProductDetails(productIds);
+    debugPrint('[PurchaseService] queried prices for $productIds: '
+        '${response.productDetails.length} found, '
+        'notFound=${response.notFoundIDs}');
+    if (response.error != null) {
+      debugPrint('[PurchaseService] price query error: ${response.error}');
+    }
+    for (final product in response.productDetails) {
+      _productPrices[product.id] = product.price;
+    }
+  }
+
+  /// Get the price string for a product, or null if unavailable
+  String? getPrice(String productId) => _productPrices[productId];
 
   /// Check if a theme is purchased
   bool isThemePurchased(String themeId) {
     return _purchasedThemes.contains(themeId);
   }
 
-  /// Purchase a theme
-  Future<bool> purchaseTheme(String themeId) async {
+  /// Purchase a theme.
+  /// Returns `true` on success, `false` on error, `null` if user cancelled.
+  Future<bool?> purchaseTheme(String themeId) async {
     if (!_isInitialized) {
       await initialize();
     }
@@ -132,10 +168,14 @@ class PurchaseService {
     final productDetailsResponse = await _iap.queryProductDetails({themeId});
 
     if (productDetailsResponse.error != null) {
+      debugPrint('[PurchaseService] purchase query error: '
+          '${productDetailsResponse.error}');
       return false;
     }
 
     if (productDetailsResponse.productDetails.isEmpty) {
+      debugPrint('[PurchaseService] no product found for $themeId, '
+          'notFound=${productDetailsResponse.notFoundIDs}');
       return false;
     }
 
@@ -144,22 +184,21 @@ class PurchaseService {
     // Create purchase param
     final purchaseParam = PurchaseParam(productDetails: productDetails);
 
-    // Initiate purchase
+    // Register a completer so _handlePurchase can signal us
+    final completer = Completer<bool?>();
+    _purchaseCompleters[themeId] = completer;
+
     try {
-      final result = await _iap.buyNonConsumable(purchaseParam: purchaseParam);
-      return result;
+      await _iap.buyNonConsumable(purchaseParam: purchaseParam);
+      return await completer.future.timeout(
+        const Duration(seconds: 60),
+        onTimeout: () => false,
+      );
     } catch (e) {
+      debugPrint('[PurchaseService] purchase exception: $e');
+      _purchaseCompleters.remove(themeId);
       return false;
     }
-  }
-
-  /// Restore purchases
-  Future<void> restorePurchases() async {
-    if (!_isInitialized) {
-      await initialize();
-    }
-
-    await _iap.restorePurchases();
   }
 
   /// Dispose
