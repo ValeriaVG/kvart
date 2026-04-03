@@ -201,6 +201,30 @@ class PurchaseService {
     }
   }
 
+  /// Restore previously purchased items.
+  /// Returns `true` if any purchases were restored, `false` otherwise.
+  Future<bool> restorePurchases() async {
+    if (!_isInitialized) {
+      await initialize();
+    }
+
+    final available = await _iap.isAvailable();
+    if (!available) return false;
+
+    final countBefore = _purchasedThemes.length;
+
+    try {
+      await _iap.restorePurchases();
+      // Give the purchase stream time to deliver restored items
+      await Future.delayed(const Duration(seconds: 3));
+    } catch (e) {
+      debugPrint('[PurchaseService] restore error: $e');
+      return false;
+    }
+
+    return _purchasedThemes.length > countBefore;
+  }
+
   /// Dispose
   void dispose() {
     _subscription?.cancel();

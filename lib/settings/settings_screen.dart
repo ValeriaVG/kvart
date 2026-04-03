@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:kvart/purchase/purchase_service.dart';
 import 'package:kvart/settings/settings_service.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -20,6 +21,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _vibrationEnabled = true;
   AlarmSound _selectedSound = SettingsService.availableSounds.first;
   bool _isLoadingSettings = true;
+  bool _isRestoringPurchases = false;
 
   @override
   void initState() {
@@ -131,6 +133,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(height: 32),
                 _buildSectionTitle('Support'),
                 const SizedBox(height: 12),
+                _buildRestorePurchasesTile(),
+                const SizedBox(height: 8),
                 _buildRateAppTile(),
                 const SizedBox(height: 8),
                 _buildBugReportTile(),
@@ -306,6 +310,72 @@ class _SettingsScreenState extends State<SettingsScreen> {
         activeThumbColor: const Color(0xFF4CAF50),
         activeTrackColor: const Color(0xFF4CAF50).withValues(alpha: 0.5),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      ),
+    );
+  }
+
+  Future<void> _restorePurchases() async {
+    if (_isRestoringPurchases) return;
+    setState(() => _isRestoringPurchases = true);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final restored = await PurchaseService().restorePurchases();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            restored
+                ? 'Purchases restored successfully!'
+                : 'No purchases to restore.',
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isRestoringPurchases = false);
+    }
+  }
+
+  Widget _buildRestorePurchasesTile() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.1),
+          width: 1,
+        ),
+      ),
+      child: ListTile(
+        title: const Text(
+          'Restore Purchases',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        subtitle: Text(
+          'Restore previously purchased themes',
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.5),
+            fontSize: 13,
+          ),
+        ),
+        trailing: _isRestoringPurchases
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white70,
+                ),
+              )
+            : Icon(
+                LucideIcons.rotateCcw,
+                color: Colors.white.withValues(alpha: 0.7),
+                size: 20,
+              ),
+        onTap: _isRestoringPurchases ? null : _restorePurchases,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
     );
   }
