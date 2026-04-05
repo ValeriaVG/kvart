@@ -219,29 +219,37 @@ class _VintageAmberTimerViewState extends State<VintageAmberTimerView>
     final digitWidth = (minSide - 32 * 2) / 5 - 24;
     final digitHeight = digitWidth * 80 / 48;
 
-    return Stack(
-      children: [
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: _showTimePicker,
+      child: Stack(
+        children: [
         // Noise and rustic lines background
-        CustomPaint(
-          painter: _RusticNoisePainter(),
-          size: Size.infinite,
-          child: Container(),
+        IgnorePointer(
+          child: CustomPaint(
+            painter: _RusticNoisePainter(),
+            size: Size.infinite,
+            child: Container(),
+          ),
         ),
         // Radial gradient overlay
-        Container(
-          decoration: const BoxDecoration(
-            gradient: RadialGradient(
-              center: Alignment.center,
-              radius: 0.8,
-              colors: [
-                Color(0x08FF8C00),
-                Colors.transparent,
-              ],
+        IgnorePointer(
+          child: Container(
+            decoration: const BoxDecoration(
+              gradient: RadialGradient(
+                center: Alignment.center,
+                radius: 0.8,
+                colors: [
+                  Color(0x08FF8C00),
+                  Colors.transparent,
+                ],
+              ),
             ),
           ),
         ),
         // Main timer with progress arc
-        CustomPaint(
+        IgnorePointer(
+          child: CustomPaint(
             painter: _VintageAmberArcPainter(
               progress,
               pulseValue: _pulseController.isAnimating
@@ -249,35 +257,37 @@ class _VintageAmberTimerViewState extends State<VintageAmberTimerView>
                   : null,
             ),
             child: Center(
-              child: GestureDetector(
-                onTap: _showTimePicker,
-                child: SevenSegmentDisplay(
-                  disabled: widget.ready == false,
-                  minutes: remainingSeconds ~/ 60,
-                  seconds: remainingSeconds % 60,
-                  digitWidth: digitWidth,
-                  digitHeight: digitHeight,
-                  onColor: const Color(0xFFFFB347),
-                  offColor: const Color(0x18FF8C00),
-                  segmentThickness: 10,
-                ),
+              child: SevenSegmentDisplay(
+                disabled: widget.ready == false,
+                minutes: remainingSeconds ~/ 60,
+                seconds: remainingSeconds % 60,
+                digitWidth: digitWidth,
+                digitHeight: digitHeight,
+                onColor: const Color(0xFFFFB347),
+                offColor: const Color(0x18FF8C00),
+                segmentThickness: 10,
               ),
             ),
           ),
+        ),
         // CRT scan lines overlay
-        CustomPaint(
-          painter: _CrtScanLinePainter(),
-          size: Size.infinite,
-          child: Container(),
+        IgnorePointer(
+          child: CustomPaint(
+            painter: _CrtScanLinePainter(),
+            size: Size.infinite,
+            child: Container(),
+          ),
         ),
         // Bell animation
         if (_showBellAnimation)
           Positioned(
             top: MediaQuery.of(context).size.height / 2 - minSide / 3,
             left: MediaQuery.of(context).size.width / 2 - 32,
-            child: const BellAnimation(
-              size: 64,
-              color: Color(0xFFFFB347),
+            child: const IgnorePointer(
+              child: BellAnimation(
+                size: 64,
+                color: Color(0xFFFFB347),
+              ),
             ),
           ),
         // Control button
@@ -309,6 +319,7 @@ class _VintageAmberTimerViewState extends State<VintageAmberTimerView>
           ),
         ),
       ],
+      ),
     );
   }
 }

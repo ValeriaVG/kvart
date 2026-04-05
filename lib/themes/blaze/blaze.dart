@@ -264,35 +264,39 @@ class _BlazeTimerViewState extends State<BlazeTimerView>
     final digitWidth = (minSide - 32 * 2) / 5 - 24;
     final digitHeight = digitWidth * 80 / 48;
 
-    return Stack(
-      children: [
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: _showTimePicker,
+      child: Stack(
+        children: [
         // Warm radial glow behind the timer
-        Container(
-          decoration: const BoxDecoration(
-            gradient: RadialGradient(
-              center: Alignment.center,
-              radius: 0.6,
-              colors: [
-                Color(0x18E51A55), // Subtle pink/red core
-                Color(0x08FF784C), // Faint orange ring
-                Colors.transparent,
-              ],
-              stops: [0.0, 0.5, 1.0],
+        IgnorePointer(
+          child: Container(
+            decoration: const BoxDecoration(
+              gradient: RadialGradient(
+                center: Alignment.center,
+                radius: 0.6,
+                colors: [
+                  Color(0x18E51A55), // Subtle pink/red core
+                  Color(0x08FF784C), // Faint orange ring
+                  Colors.transparent,
+                ],
+                stops: [0.0, 0.5, 1.0],
+              ),
             ),
           ),
         ),
         // Progress arc
-        CustomPaint(
-          painter: _BlazeArcPainter(
-            progress,
-            embers: _embers,
-            pulseValue: _pulseController.isAnimating
-                ? _pulseController.value
-                : null,
-          ),
-          child: Center(
-            child: GestureDetector(
-              onTap: _showTimePicker,
+        IgnorePointer(
+          child: CustomPaint(
+            painter: _BlazeArcPainter(
+              progress,
+              embers: _embers,
+              pulseValue: _pulseController.isAnimating
+                  ? _pulseController.value
+                  : null,
+            ),
+            child: Center(
               child: SevenSegmentDisplay(
                 disabled: widget.ready == false,
                 minutes: remainingSeconds ~/ 60,
@@ -310,7 +314,9 @@ class _BlazeTimerViewState extends State<BlazeTimerView>
           Positioned(
             top: MediaQuery.of(context).size.height / 2 - minSide / 3,
             left: MediaQuery.of(context).size.width / 2 - 32,
-            child: const BellAnimation(size: 64, color: Color(0xFFFF784C)),
+            child: const IgnorePointer(
+              child: BellAnimation(size: 64, color: Color(0xFFFF784C)),
+            ),
           ),
         // Control button
         Positioned(
@@ -348,6 +354,7 @@ class _BlazeTimerViewState extends State<BlazeTimerView>
           ),
         ),
       ],
+      ),
     );
   }
 }

@@ -181,13 +181,15 @@ class _DefaultTimerViewState extends State<DefaultTimerView> {
     );
     final digitWidth = (minSide - 32 * 2) / 5 - 24;
     final digitHeight = digitWidth * 80 / 48;
-    return Stack(
-      children: [
-        CustomPaint(
-          painter: TimerArcPainter(progress),
-          child: Center(
-            child: GestureDetector(
-              onTap: _showTimePicker,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: _showTimePicker,
+      child: Stack(
+        children: [
+        IgnorePointer(
+          child: CustomPaint(
+            painter: TimerArcPainter(progress),
+            child: Center(
               child: SevenSegmentDisplay(
                 disabled: widget.ready == false,
                 minutes: remainingSeconds ~/ 60,
@@ -203,7 +205,7 @@ class _DefaultTimerViewState extends State<DefaultTimerView> {
           Positioned(
             top: MediaQuery.of(context).size.height / 2 - minSide / 3,
             left: MediaQuery.of(context).size.width / 2 - 32,
-            child: const BellAnimation(size: 64),
+            child: const IgnorePointer(child: BellAnimation(size: 64)),
           ),
         Positioned(
           top: MediaQuery.of(context).size.height / 2 + minSide / 6 - 16,
@@ -238,6 +240,7 @@ class _DefaultTimerViewState extends State<DefaultTimerView> {
           ),
         ),
       ],
+      ),
     );
   }
 }
