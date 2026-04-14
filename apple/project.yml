@@ -35,7 +35,7 @@ targets:
         DEVELOPMENT_TEAM: Q782F63TK2
         PRODUCT_BUNDLE_IDENTIFIER: com.valeriavg.kvart
         MARKETING_VERSION: 2.0.0
-        CURRENT_PROJECT_VERSION: 7
+        CURRENT_PROJECT_VERSION: 8
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     info:
       path: Kvart/Info-iOS.plist
@@ -53,6 +53,11 @@ targets:
         NSSupportsLiveActivities: true
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
         UILaunchScreen:
@@ -84,6 +89,7 @@ targets:
     info:
       path: KvartWidget/Info-Widget.plist
       properties:
+        CFBundleDisplayName: Kvart
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSExtension:
