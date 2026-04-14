@@ -1,0 +1,92 @@
+name: Kvart
+packages:
+  Shared:
+    path: ./generated/Shared
+  App:
+    path: ./generated/App
+options:
+  bundleIdPrefix: com.valeriavg
+  developmentLanguage: en
+attributes:
+  BuildIndependentTargetsInParallel: true
+
+targetTemplates:
+  app:
+    type: application
+    sources:
+      - path: Kvart
+        excludes:
+          - "Info-*.plist"
+      - path: Shared
+    scheme:
+      management:
+        shared: true
+    dependencies:
+      - package: Shared
+      - package: App
+
+targets:
+  Kvart:
+    templates: [app]
+    platform: iOS
+    deploymentTarget: 18.0
+    settings:
+      base:
+        DEVELOPMENT_TEAM: Q782F63TK2
+        PRODUCT_BUNDLE_IDENTIFIER: com.valeriavg.kvart
+        MARKETING_VERSION: 2.0.0
+        CURRENT_PROJECT_VERSION: 7
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    info:
+      path: Kvart/Info-iOS.plist
+      properties:
+        CFBundleDisplayName: Kvart
+        CFBundleLocalizations:
+          - en
+          - sv
+          - fr
+          - de
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSRequiresIPhoneOS: true
+        ITSAppUsesNonExemptEncryption: false
+        NSSupportsLiveActivities: true
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+          UIImageName: LaunchIcon
+        CFBundleURLTypes:
+          - CFBundleURLName: com.valeriavg.kvart
+            CFBundleURLSchemes:
+              - kvart
+    dependencies:
+      - target: KvartWidget
+
+  KvartWidget:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: 18.0
+    sources:
+      - path: KvartWidget
+        excludes:
+          - "Info-*.plist"
+      - path: Shared
+    settings:
+      base:
+        DEVELOPMENT_TEAM: Q782F63TK2
+        PRODUCT_BUNDLE_IDENTIFIER: com.valeriavg.kvart.widget
+        MARKETING_VERSION: 1.0.1
+        CURRENT_PROJECT_VERSION: 6
+        INFOPLIST_KEY_CFBundleDisplayName: Kvart
+    info:
+      path: KvartWidget/Info-Widget.plist
+      properties:
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    dependencies:
+      - package: App

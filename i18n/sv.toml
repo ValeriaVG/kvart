@@ -1,0 +1,63 @@
+[common]
+ok = "OK"
+cancel = "Avbryt"
+done = "Klar"
+
+[settings]
+title = "Inställningar"
+alarm_sound = "Larmljud"
+enable_sound = "Aktivera ljud"
+vibration = "Vibration"
+enable_vibration = "Aktivera vibration"
+language = "Språk"
+language_system = "System"
+support = "Support"
+rate_app = "Betygsätt appen"
+rate_app_subtitle = "Gillar du Kvart? Lämna ett betyg i App Store"
+report_bug = "Rapportera ett fel"
+report_bug_subtitle = "Hjälp oss att förbättra genom att rapportera problem på GitHub"
+restore_purchases = "Återställ köp"
+restore_purchases_subtitle = "Återställ tidigare köpta teman"
+restore_failed = "Det gick inte att återställa köp."
+restore_success = "Köpen har återställts!"
+restore_none = "Inga köp att återställa."
+play_sound_preview = "Spela förhandsvisning av %@"
+
+[themes]
+title = "Teman"
+active = "Aktiv"
+tap_to_apply = "Tryck för att använda"
+purchase_failed = "Köpet misslyckades"
+product_unavailable = "Produkten är inte tillgänglig."
+verify_failed = "Det gick inte att verifiera köpet."
+purchase_pending = "Köp väntar"
+purchase_pending_message = "Ditt köp väntar på godkännande. Du får tillgång när det är godkänt."
+
+[timer]
+set_timer = "Ställ in timer"
+minutes_short = "min."
+seconds_short = "sek."
+
+[themes.modern]
+name = "Modern"
+description = "Ren limegrön design"
+
+[themes.vintage_amber]
+name = "Vintage Amber"
+description = "Postapokalyptisk retroestetik"
+
+[themes.blaze]
+name = "Blaze"
+description = "Flammande gradient mot mörk bakgrund"
+
+[sounds.game_unlock]
+name = "Game Unlock"
+description = "Mjuk ton av OM FX / Uppbeat.io"
+
+[sounds.kalimba_ding]
+name = "Kalimba Ding"
+description = "Mjukt kalimba-ljud av Tomas Herudek / Uppbeat.io"
+
+[sounds.double_bell]
+name = "Dubbelklocka"
+description = "Klassisk dubbelklocka av The Foundation / Uppbeat.io"

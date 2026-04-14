@@ -2,7 +2,7 @@
 
 # Kvart
 
-Kvart (from Swedish "kvart", meaning "quarter") is a visual timer app written in Flutter. 
+Kvart (from Swedish "kvart", meaning "quarter") is a visual timer app built with a Rust [Crux](https://redbadger.github.io/crux/) core and a native iOS (SwiftUI) shell.
 It does one thing and does it well: it helps you keep track of time in set intervals.
 
 ![Screenshot: round green timer set to 15 minutes](./screenshots/IMG_5167.jpeg)
@@ -18,16 +18,36 @@ App contains in-app purchases to unlock additional themes for a minimal one-time
 
 ## Development
 
-Kvart is built with Flutter, follow the instructions on [flutter.dev](https://flutter.dev/docs/get-started/install) to set up Flutter on your machine.
+Kvart combines a shared Rust core (using [Crux](https://redbadger.github.io/crux/)) with a native iOS shell. The core owns all domain logic, state, and view projections; the shell stays thin with native views and capabilities.
 
-Follow https://docs.flutter.dev/platform-integration/ios/setup to set up your iOS development environment.
+### Prerequisites
 
-After that you can use the following commands to run Kvart on your iOS device or simulator:
+- [Rust](https://www.rust-lang.org/tools/install) with the `wasm32-unknown-unknown` target (`rustup target add wasm32-unknown-unknown`)
+- [just](https://github.com/casey/just) task runner
+- [xcodegen](https://github.com/yonaskolb/XcodeGen) and [cargo-swift](https://github.com/antoniusnaumann/cargo-swift) v0.9.0
+- Xcode with iOS Simulator — follow [Apple's setup guide](https://developer.apple.com/xcode/) for your iOS development environment
+
+### Layout
+
+- `./shared` — Rust/Crux core (domain types, events, pure `handle()` logic, view models)
+- `./apple` — iOS SwiftUI shell consuming the generated Swift bindings
+
+### Running
+
+From `./shared`, validate and test the core:
 
 ```bash
-flutter pub get
-flutter run ios
+just dev   # fix → check → build → test
 ```
+
+From `./apple`, generate bindings, build, and run on the iOS Simulator:
+
+```bash
+just generate   # typegen → package → xcodegen
+just build      # xcodebuild for the Kvart scheme
+```
+
+See [`CLAUDE.md`](./CLAUDE.md) for the full core-first workflow and conventions.
 
 ## Support
 

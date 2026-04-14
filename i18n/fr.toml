@@ -1,0 +1,63 @@
+[common]
+ok = "OK"
+cancel = "Annuler"
+done = "Terminé"
+
+[settings]
+title = "Réglages"
+alarm_sound = "Son de l'alarme"
+enable_sound = "Activer le son"
+vibration = "Vibration"
+enable_vibration = "Activer la vibration"
+language = "Langue"
+language_system = "Système"
+support = "Support"
+rate_app = "Noter l'application"
+rate_app_subtitle = "Vous aimez Kvart ? Laissez une note sur l'App Store"
+report_bug = "Signaler un bug"
+report_bug_subtitle = "Aidez-nous à progresser en signalant les problèmes sur GitHub"
+restore_purchases = "Restaurer les achats"
+restore_purchases_subtitle = "Restaurer les thèmes précédemment achetés"
+restore_failed = "Impossible de restaurer les achats."
+restore_success = "Achats restaurés avec succès !"
+restore_none = "Aucun achat à restaurer."
+play_sound_preview = "Écouter l'aperçu de %@"
+
+[themes]
+title = "Thèmes"
+active = "Actif"
+tap_to_apply = "Touchez pour appliquer"
+purchase_failed = "Échec de l'achat"
+product_unavailable = "Produit indisponible."
+verify_failed = "Impossible de vérifier l'achat."
+purchase_pending = "Achat en attente"
+purchase_pending_message = "Votre achat est en attente d'approbation. Vous y aurez accès une fois approuvé."
+
+[timer]
+set_timer = "Définir le minuteur"
+minutes_short = "min."
+seconds_short = "s"
+
+[themes.modern]
+name = "Moderne"
+description = "Design épuré vert citron"
+
+[themes.vintage_amber]
+name = "Ambre Vintage"
+description = "Esthétique rétro post-apocalyptique"
+
+[themes.blaze]
+name = "Blaze"
+description = "Dégradé flamboyant sur fond sombre"
+
+[sounds.game_unlock]
+name = "Game Unlock"
+description = "Carillon doux par OM FX / Uppbeat.io"
+
+[sounds.kalimba_ding]
+name = "Kalimba Ding"
+description = "Son doux de kalimba par Tomas Herudek / Uppbeat.io"
+
+[sounds.double_bell]
+name = "Double cloche"
+description = "Double cloche classique par The Foundation / Uppbeat.io"

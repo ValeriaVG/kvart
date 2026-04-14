@@ -1,0 +1,68 @@
+# Source of truth for English strings.
+# Add new locales as sibling files (e.g. de.toml) with the same key structure.
+# Run `just i18n` (from ./apple) to regenerate platform bindings.
+
+[common]
+ok = "OK"
+cancel = "Cancel"
+done = "Done"
+
+[settings]
+title = "Settings"
+alarm_sound = "Alarm Sound"
+enable_sound = "Enable Sound"
+vibration = "Vibration"
+enable_vibration = "Enable Vibration"
+language = "Language"
+language_system = "System"
+support = "Support"
+rate_app = "Rate the App"
+rate_app_subtitle = "Enjoying Kvart? Leave a rating on the app store"
+report_bug = "Report a Bug"
+report_bug_subtitle = "Help us improve by reporting issues on GitHub"
+restore_purchases = "Restore Purchases"
+restore_purchases_subtitle = "Restore previously purchased themes"
+restore_failed = "Couldn't restore purchases."
+restore_success = "Purchases restored successfully!"
+restore_none = "No purchases to restore."
+# %@ is substituted with the alarm sound name at runtime.
+play_sound_preview = "Play %@ preview"
+
+[themes]
+title = "Themes"
+active = "Active"
+tap_to_apply = "Tap to apply"
+purchase_failed = "Purchase Failed"
+product_unavailable = "Product unavailable."
+verify_failed = "Couldn't verify purchase."
+purchase_pending = "Purchase Pending"
+purchase_pending_message = "Your purchase is awaiting approval. You'll get access once it's approved."
+
+[timer]
+set_timer = "Set Timer"
+minutes_short = "min."
+seconds_short = "sec."
+
+[themes.modern]
+name = "Modern"
+description = "Clean lime green design"
+
+[themes.vintage_amber]
+name = "Vintage Amber"
+description = "Post-apocalyptic retro aesthetic"
+
+[themes.blaze]
+name = "Blaze"
+description = "Fiery gradient on dark background"
+
+[sounds.game_unlock]
+name = "Game Unlock"
+description = "Gentle chime sound by OM FX / Uppbeat.io"
+
+[sounds.kalimba_ding]
+name = "Kalimba Ding"
+description = "Soft kalimba ding sound by Tomas Herudek / Uppbeat.io"
+
+[sounds.double_bell]
+name = "Double Bell"
+description = "Classic double bell sound by The Foundation / Uppbeat.io"

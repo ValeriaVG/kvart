@@ -1,0 +1,63 @@
+[common]
+ok = "OK"
+cancel = "Abbrechen"
+done = "Fertig"
+
+[settings]
+title = "Einstellungen"
+alarm_sound = "Alarmton"
+enable_sound = "Ton aktivieren"
+vibration = "Vibration"
+enable_vibration = "Vibration aktivieren"
+language = "Sprache"
+language_system = "System"
+support = "Support"
+rate_app = "App bewerten"
+rate_app_subtitle = "Gefällt dir Kvart? Hinterlasse eine Bewertung im App Store"
+report_bug = "Fehler melden"
+report_bug_subtitle = "Hilf uns beim Verbessern – melde Probleme auf GitHub"
+restore_purchases = "Käufe wiederherstellen"
+restore_purchases_subtitle = "Zuvor gekaufte Designs wiederherstellen"
+restore_failed = "Käufe konnten nicht wiederhergestellt werden."
+restore_success = "Käufe erfolgreich wiederhergestellt!"
+restore_none = "Keine Käufe zum Wiederherstellen."
+play_sound_preview = "Vorschau von %@ abspielen"
+
+[themes]
+title = "Designs"
+active = "Aktiv"
+tap_to_apply = "Zum Anwenden tippen"
+purchase_failed = "Kauf fehlgeschlagen"
+product_unavailable = "Produkt nicht verfügbar."
+verify_failed = "Kauf konnte nicht verifiziert werden."
+purchase_pending = "Kauf ausstehend"
+purchase_pending_message = "Dein Kauf wartet auf Genehmigung. Du erhältst Zugriff, sobald er genehmigt wurde."
+
+[timer]
+set_timer = "Timer stellen"
+minutes_short = "Min."
+seconds_short = "Sek."
+
+[themes.modern]
+name = "Modern"
+description = "Klares limettengrünes Design"
+
+[themes.vintage_amber]
+name = "Vintage Amber"
+description = "Postapokalyptische Retro-Ästhetik"
+
+[themes.blaze]
+name = "Blaze"
+description = "Feuriger Verlauf auf dunklem Hintergrund"
+
+[sounds.game_unlock]
+name = "Game Unlock"
+description = "Sanfter Klang von OM FX / Uppbeat.io"
+
+[sounds.kalimba_ding]
+name = "Kalimba Ding"
+description = "Weicher Kalimba-Ton von Tomas Herudek / Uppbeat.io"
+
+[sounds.double_bell]
+name = "Doppelglocke"
+description = "Klassische Doppelglocke von The Foundation / Uppbeat.io"

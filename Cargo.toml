@@ -1,0 +1,21 @@
+[workspace]
+members = ["shared"]
+resolver = "1"
+
+[workspace.package]
+authors = ["ValeriaVG"]
+edition = "2021"
+repository = "https://github.com/valeriavg/kvart"
+rust-version = "1.94"
+license = ""
+keywords = ["timer", "ios", "productivity"]
+
+[workspace.dependencies]
+crux_core = "0.17.0"
+serde = "1.0.217"
+
+[workspace.lints.clippy]
+pedantic = "warn"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
