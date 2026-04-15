@@ -75,7 +75,21 @@ class Core: ObservableObject {
         let reset = center.addObserver(forName: .kvartTimerReset, object: nil, queue: .main) { _ in
             Task { @MainActor in Core.shared.send(.reset) }
         }
-        intentObservers = [toggle, reset]
+        let terminate = center.addObserver(
+            forName: UIApplication.willTerminateNotification,
+            object: nil,
+            queue: .main
+        ) { _ in
+            Task { @MainActor in Core.shared.endActivityOnTerminate() }
+        }
+        intentObservers = [toggle, reset, terminate]
+    }
+
+    private func endActivityOnTerminate() {
+        for activity in Activity<TimerActivityAttributes>.activities {
+            Task { await activity.end(nil, dismissalPolicy: .immediate) }
+        }
+        self.activity = nil
     }
 
     private func handleToggleIntent() {
@@ -276,7 +290,10 @@ class Core: ObservableObject {
             secondsElapsed: timer.secondsElapsed,
             fractionAtPause: fraction
         )
-        let content = ActivityContent(state: state, staleDate: nil)
+        let staleDate: Date? = contentStatus == .running
+            ? Date(timeIntervalSince1970: TimeInterval(endMs) / 1000).addingTimeInterval(5)
+            : nil
+        let content = ActivityContent(state: state, staleDate: staleDate)
 
         if let activity = activity {
             Task { await activity.update(content) }

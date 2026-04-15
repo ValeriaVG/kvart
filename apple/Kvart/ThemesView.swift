@@ -130,6 +130,7 @@ struct ThemeCard: View {
             .frame(height: 260)
             .background(background)
             .clipShape(RoundedRectangle(cornerRadius: 16))
+            .contentShape(RoundedRectangle(cornerRadius: 16))
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
                     .stroke(card.selected && !card.locked ? accent : Color.white.opacity(0.10),
