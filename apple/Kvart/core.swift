@@ -101,7 +101,7 @@ class Core: ObservableObject {
     }
 
     private func syncLocale() {
-        LocaleBundle.override = view.settings.language.code
+        LocaleBundle.override = view.settings.language.code ?? NSLocale.current.language.languageCode?.identifier
     }
 
     func send(_ timer: TimerEvent) { update(.timer(timer)) }

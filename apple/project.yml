@@ -21,6 +21,7 @@ targetTemplates:
     scheme:
       management:
         shared: true
+      storeKitConfiguration: Kvart.storekit
     dependencies:
       - package: Shared
       - package: App

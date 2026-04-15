@@ -1,0 +1,50 @@
+{
+  "identifier" : "A1B2C3D4-0001-0000-0000-00000000KVRT",
+  "nonRenewingSubscriptions" : [],
+  "products" : [
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "KVRT0001",
+      "localizations" : [
+        {
+          "description" : "Vintage Amber theme for Kvart",
+          "displayName" : "Vintage Amber Theme",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "theme_vintage_amber",
+      "referenceName" : "Vintage Amber Theme",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "KVRT0002",
+      "localizations" : [
+        {
+          "description" : "Blaze theme for Kvart",
+          "displayName" : "Blaze Theme",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "theme_blaze",
+      "referenceName" : "Blaze Theme",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "0",
+    "_developerTeamID" : "Q782F63TK2",
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 0,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : []
+  },
+  "subscriptionGroups" : [],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}
